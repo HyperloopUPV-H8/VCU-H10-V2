@@ -32,6 +32,19 @@ void VCU::initialize_state_machines(){
         // !return socket.is_connected() y algo mas ...
     });
 
+    GeneralStateMachine.add_enter_action([&](){
+        leds.leds_connecting();
+    }, GeneralStates::Connecting);
+
+    GeneralStateMachine.add_enter_action([&](){
+        leds.leds_operational();
+    }, GeneralStates::Operational);
+
+    GeneralStateMachine.add_enter_action([&](){
+        leds.leds_fault();
+    }, GeneralStates::Fault);
+
+
     OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Precharge, [&](){
         return requested_close_contactors
     });

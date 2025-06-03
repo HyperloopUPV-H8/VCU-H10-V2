@@ -1,6 +1,8 @@
 #pragma once
 #include "ST-LIB.hpp"
 #include"Communications/Ethernet.hpp"
+#include "Actuators/Leds.hpp"
+
 
 
     enum GeneralStates {
@@ -20,6 +22,7 @@
 class VCU{
     private:
     Communications::Ethernet();
+    Actuators::Leds leds{Pinout::led_operational_pin, Pinout::led_fault_pin, Pinout::led_can_pin, Pinout::led_sleep_pin, Pinout::led_flash_pin};
     //declaraciones de todo :)
 
     static bool requested_unbrake;
