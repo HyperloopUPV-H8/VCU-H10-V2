@@ -36,6 +36,8 @@ class VCU{
     static bool requested_charging_LV_battery;
     static bool requested_enable_booster;
 
+    HeapPacket Flags{};
+
     StateMachine GeneralStateMachine;
     StateMachine OperationalStateMachine;
 
