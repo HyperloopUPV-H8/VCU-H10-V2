@@ -15,10 +15,10 @@ void VCU::initialize_state_machines(){
     OperationalStateMachine.add_state(OperationalStates::Ready, "Ready");
     OperationalStateMachine.set_initial_state(OperationalStates::Idle);
     //id inventada en todas 
-    HeapStateOrder Open_Contactors(0x0001,on_open_contactors,GeneralStateMachine,GeneralStates::Operational);
-    HeapStateOrder Close_Contactors(0x0002,on_close_contactors,GeneralStateMachine,GeneralStates::Operational);
-    HeapStateOrder Unbrake(0x0003,on_unbrake,GeneralStateMachine,GeneralStates::Operational);
-    HeapStateOrder Brake(0x0004,on_brake,GeneralStateMachine,GeneralStates::Operational);
+    // HeapStateOrder Open_Contactors(0x0001,on_open_contactors,GeneralStateMachine,GeneralStates::Operational);
+    // HeapStateOrder Close_Contactors(0x0002,on_close_contactors,GeneralStateMachine,GeneralStates::Operational);
+    // HeapStateOrder Unbrake(0x0003,on_unbrake,GeneralStateMachine,GeneralStates::Operational);
+    // HeapStateOrder Brake(0x0004,on_brake,GeneralStateMachine,GeneralStates::Operational);
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Operational, [&](){
         return socket.is_connected() ...
@@ -73,14 +73,14 @@ void VCU::initialize_state_machines(){
         return requested_brake
     });
 
-    HeapStateOrder Levitation_Active(0x0005,on_levitation_active,OperationalStateMachine,OperationalStates::Ready);
-    HeapStateOrder Propulsion_Active(0x0006,on_propulsion_active,OperationalStateMachine,OperationalStates::Ready);
-    HeapStateOrder Charging_LV_Battery(0x0007,on_charging_LV_battery,OperationalStateMachine,OperationalStates::Ready);
-    HeapStateOrder Enable_Booster(0x0008,on_enable_booster,OperationalStateMachine,OperationalStates::Ready);
-    HeapStateOrder Levitation_Inactive(0x0009,on_levitation_inactive,OperationalStateMachine,OperationalStates::Idle);
-    HeapStateOrder Propulsion_Inactive(0x0010,on_propulsion_inactive,OperationalStateMachine,OperationalStates::Idle);
-    HeapStateOrder Charging_LV_Battery_Inactive(0x0011,on_charging_LV_battery_inactive,OperationalStateMachine,OperationalStates::Idle);
-    HeapStateOrder Disable_booster(0x0012,on_disable_booster,OperationalStateMachine,OperationalStates::Idle);
+    // HeapStateOrder Levitation_Active(0x0005,on_levitation_active,OperationalStateMachine,OperationalStates::Ready);
+    // HeapStateOrder Propulsion_Active(0x0006,on_propulsion_active,OperationalStateMachine,OperationalStates::Ready);
+    // HeapStateOrder Charging_LV_Battery(0x0007,on_charging_LV_battery,OperationalStateMachine,OperationalStates::Ready);
+    // HeapStateOrder Enable_Booster(0x0008,on_enable_booster,OperationalStateMachine,OperationalStates::Ready);
+    // HeapStateOrder Levitation_Inactive(0x0009,on_levitation_inactive,OperationalStateMachine,OperationalStates::Idle);
+    // HeapStateOrder Propulsion_Inactive(0x0010,on_propulsion_inactive,OperationalStateMachine,OperationalStates::Idle);
+    // HeapStateOrder Charging_LV_Battery_Inactive(0x0011,on_charging_LV_battery_inactive,OperationalStateMachine,OperationalStates::Idle);
+    // HeapStateOrder Disable_booster(0x0012,on_disable_booster,OperationalStateMachine,OperationalStates::Idle);
 
     OperationalStateMachine.add_enter_action([&](){
         requested_open_contactors = false;
