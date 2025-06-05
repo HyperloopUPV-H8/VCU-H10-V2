@@ -1,19 +1,23 @@
-#pragma once
-#include "VCU.hpp"
+#include "VCU/VCU.hpp"
 
+
+VCU::VCU(){
+    initialize_state_machines();
+    ethernet(&GeneralStateMachine, &OperationalStateMachine);
+    
+}
 
 void VCU::initialize_state_machines(){
-    GeneralStateMachine.add_state(GeneralStates::Connecting, "Connecting");
-    GeneralStateMachine.add_state(GeneralStates::Operational, "Operational");
-    GeneralStateMachine.add_state(GeneralStates::Fault, "Fault");
-    GeneralStateMachine.set_initial_state(GeneralStates::Connecting);
-
-    OperationalStateMachine.add_state(OperationalStates::Idle, "Idle");
-    OperationalStateMachine.add_state(OperationalStates::Precharge, "Precharge");
-    OperationalStateMachine.add_state(OperationalStates::EndOfRun, "EndOfRun");
-    OperationalStateMachine.add_state(OperationalStates::Energized, "Energized");
-    OperationalStateMachine.add_state(OperationalStates::Ready, "Ready");
-    OperationalStateMachine.set_initial_state(OperationalStates::Idle);
+    GeneralStateMachine(GeneralStates::Connecting);
+    GeneralStateMachine.add_state(GeneralStates::Operational);
+    GeneralStateMachine.add_state(GeneralStates::Fault);
+    
+    OperationalStateMachine(OperationalStates::Idle);
+    OperationalStateMachine.add_state(OperationalStates::Precharge);
+    OperationalStateMachine.add_state(OperationalStates::EndOfRun);
+    OperationalStateMachine.add_state(OperationalStates::Energized);
+    OperationalStateMachine.add_state(OperationalStates::Ready);
+    
     //id inventada en todas 
     // HeapStateOrder Open_Contactors(0x0001,on_open_contactors,GeneralStateMachine,GeneralStates::Operational);
     // HeapStateOrder Close_Contactors(0x0002,on_close_contactors,GeneralStateMachine,GeneralStates::Operational);
@@ -21,15 +25,15 @@ void VCU::initialize_state_machines(){
     // HeapStateOrder Brake(0x0004,on_brake,GeneralStateMachine,GeneralStates::Operational);
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Operational, [&](){
-        return Ethernet.connected()
+        return ethernet.connected();
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        return !Ethernet.connected()
+        return !ethernet.connected();
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        return !Ethernet.connected() // y algo mas para que no se vaya a fault al principio
+        return !ethernet.connected(); // y algo mas para que no se vaya a fault al principio
     });
 
     GeneralStateMachine.add_enter_action([&](){
@@ -46,11 +50,11 @@ void VCU::initialize_state_machines(){
 
 
     OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Precharge, [&](){
-        return requested_close_contactors
+        return requested_close_contactors;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Precharge, OperationalStates::Idle, [&](){
-        return requested_open_contactors
+        return requested_open_contactors;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Precharge, OperationalStates::Energyzed, [&](){
@@ -58,19 +62,19 @@ void VCU::initialize_state_machines(){
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Idle, [&](){
-        return requested_open_contactors
+        return requested_open_contactors;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::EndOfRun, [&](){
-        return requested_unbrake
+        return requested_unbrake;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Ready, [&](){
-        return requested_unbrake
+        return requested_unbrake;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Ready, OperationalStates::Energyzed, [&](){
-        return requested_brake
+        return requested_brake;
     });
 
     // HeapStateOrder Levitation_Active(0x0005,on_levitation_active,OperationalStateMachine,OperationalStates::Ready);
@@ -103,10 +107,10 @@ void VCU::initialize_state_machines(){
     }, OperationalStates::Energyzed);
 
     OperationalStateMachine.add_exit_action([&](){
-        requested_levitation_active= false;
-        requested_propulsion_active= false;
-        requested_charging_LV_battery= false;
-        requested_enable_booster= false;
+        Ethernet.Flags_ready.requested_levitation_active= false;
+        Ethernet.Flags_ready.requested_propulsion_active= false;
+        Ethernet.Flags_ready.requested_charging_LV_battery= false;
+        Ethernet.Flags_ready.requested_enable_booster= false;
     }, OperationalStates::Energyzed);
 
     ProtectionManager::link_state_machine(GeneralStateMachine, GeneralStates::Fault);

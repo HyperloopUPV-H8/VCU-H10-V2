@@ -17,7 +17,7 @@ namespace Actuators {
         uint8_t blinking_action_id{UNDEFINED_ID};
 
         public:
-        Leds(Pin& operational_pin, Pin& fault_pin, Pin& can_pin, Pi& sleep_pin, Pin& flash_pin)
+        Leds(Pin& operational_pin, Pin& fault_pin, Pin& can_pin, Pin& sleep_pin, Pin& flash_pin)
             : LedOperational(operational_pin), LedFault(fault_pin), LedCan(can_pin), LedSleep(sleep_pin), LedFlash(flash_pin) {}
 
         void leds_connecting();

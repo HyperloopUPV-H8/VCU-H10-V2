@@ -1,5 +1,4 @@
-#pragma once
-#include "Pinout.hpp"
+#include "VCU/Actuators/Pinout.hpp"
 
 namespace Pinout {
 Pin& led_operational_pin(LED_OPERATIONAL_PIN);

@@ -1,7 +1,8 @@
 #pragma once
 #include "ST-LIB.hpp"
-#include"Communications/Ethernet.hpp"
-#include "Actuators/Leds.hpp"
+#include "VCU/Communcations/Ethernet.hpp"
+#include "VCU/Actuators/Leds.hpp"
+#include "VCU/Actuators/Pinout.hpp"
 
 enum GeneralStates {
     Connecting,
@@ -21,19 +22,13 @@ class VCU{
     private:
     
     Actuators::Leds leds{Pinout::led_operational_pin, Pinout::led_fault_pin, Pinout::led_can_pin, Pinout::led_sleep_pin, Pinout::led_flash_pin};
-    //declaraciones de todo :)
-
-    
-
-    HeapPacket Flags{};
+    //HeapPacket Flags{};
 
     StateMachine GeneralStateMachine;
     StateMachine OperationalStateMachine;
 
-    Communications::Ethernet(&GeneralStateMachine,&OperationalStateMachine);
+    Communications::Ethernet ethernet;
 
-
-    
 
     void initialize_state_machines();
 
