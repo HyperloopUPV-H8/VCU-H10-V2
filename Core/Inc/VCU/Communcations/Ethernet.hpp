@@ -2,8 +2,65 @@
 #include "ST-LIB.hpp"
 #include "VCU.hpp"
 
-//Esto luego será el ethernet:
 namespace Communications{
+
+    struct UDP_data{
+        //Por definir
+    };
+
+    enum VCU_ID{
+        uint16_t Open_contactors = 0x0001,
+        uint16_t Close_contactors = 0x0002,
+        uint16_t Unbrake = 0x0003,
+        uint16_t Brake = 0x0004,
+        uint16_t Levitation_active = 0x0005,
+        uint16_t Propulsion_active = 0x0006,
+        uint16_t Charging_LV_battery = 0x0007,
+        uint16_t Enable_booster = 0x0008,
+        uint16_t Levitation_inactive = 0x0009,
+        uint16_t Propulsion_inactive = 0x0010,
+        uint16_t Charging_LV_battery_inactive = 0x0011,
+        uint16_t Disable_booster = 0x0012,
+
+    };
+    //Todas las ids por definir
+    enum HVSCU_ID{
+        uint16_t Close_contactors = 0x0001,
+        uint16_t Open_contactors = 0x0002,
+        uint16_t Start_charging_HV = 0x0003,
+        uint16_t Stop_charging_HV = 0x0004,
+    };
+
+    enum BMSL_ID{
+        uint16_t Start_charging_LV = 0x0001,
+        uint16_t Stop_charging_LV = 0x0002,
+    }
+
+    enum PCU_ID{
+        uint16_t Stop_dynamic_run = 0x0001,
+        uint16_t Start_dynamic_run = 0x0002,
+    };
+
+    enum LCU_ID{
+        uint16_t Stop_vertical_levitation = 0x0001,
+        uint16_t Start_vertical_levitation = 0x0002,
+        uint16_t Stop_horizontal_levitation = 0x0003,
+        uint16_t Start_horizontal_levitation = 0x0004,
+    }
+
+    enum BLCU_ID{
+        uint16_t Upload_code = 0x0001,
+        uint16_t Reset_vehicle = 0x0002,
+    };
+
+    enum Boards{
+        VCU,
+        PCU,
+        HVSCU,
+        BMSL,
+        LCU,
+        BLCU,
+    };
 class Ethernet{
     private:
 
@@ -13,11 +70,13 @@ class Ethernet{
     //Finish precharge ver como recibirlo
     static bool requested_brake;
     struct Flags_ready{
-        bool requested_levitation_active;
-        bool requested_propulsion_active;
-        bool requested_charging_LV_battery;
-        bool requested_enable_booster;
+        bool requested_levitation_active=false;
+        bool requested_propulsion_active=false;
+        bool requested_charging_LV_battery=false;
+        bool requested_enable_booster=false;
     };
+
+
     
     Flags_ready flags_ready{};
     
@@ -37,7 +96,8 @@ class Ethernet{
     
     StateMachine* GeneralStateMachine = nullptr;
     StateMachine* OperationalStateMachine = nullptr;
-    
+
+    //State orders:
     HeapStateOrder Open_Contactors;
     HeapStateOrder Close_Contactors;
     HeapStateOrder Unbrake;
@@ -51,6 +111,141 @@ class Ethernet{
     HeapStateOrder Propulsion_Inactive;
     HeapStateOrder Charging_LV_Battery_Inactive;
     HeapStateOrder Disable_booster;
+
+    
+
+static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
+struct OrderTriggers{
+    Boards board;
+    bool* flag;
+    HeapOrder* order;
+
+    OrderTriggers(Boards Board,bool* flag, HeapOrder* order)
+        : board(Board),flag(flag), order(order) { }
+};
+static std::vector<OrderTriggers> order_triggers{};
+
+//Hay que ver como aplico la generacion de codigo, por ahora esto:
+
+static bool HVSCU_requested_close_contactors;
+static bool HVSCU_requested_open_contactors;
+static bool HVSCU_requested_start_charging;
+static bool HVSCU_requested_stop_charging;
+
+static bool BMSL_requested_start_charging;
+static bool BMSL_requested_stop_charging;
+
+static bool PCU_requested_stop_dynamic_run;
+static bool PCU_requested_start_dynamic_run;
+
+static bool LCU_requested_stop_vertical_levitation;
+static bool LCU_requested_start_vertical_levitation;
+static bool LCU_requested_stop_horizontal_levitation;
+static bool LCU_requested_start_horizontal_levitation;
+
+static bool BLCU_requested_upload_code;
+static bool BLCU_requested_reset_vehicle;
+
+static void on_HVSCU_requested_close_contactors(){
+    HVSCU_requested_close_contactors = true;
+}
+static void on_HVSCU_requested_open_contactors(){
+    HVSCU_requested_open_contactors = true;
+}
+static void on_HVSCU_requested_start_charging(){
+    HVSCU_requested_start_charging = true;
+}
+static void on_HVSCU_requested_stop_charging(){
+    HVSCU_requested_stop_charging = true;
+}
+
+
+static void on_BMSL_requested_start_charging(){
+    BMSL_requested_start_charging = true;
+}
+static void on_BMSL_requested_stop_charging(){
+    BMSL_requested_stop_charging = true;
+}
+
+
+static void on_PCU_requested_stop_dynamic_run(){
+    PCU_requested_stop_dynamic_run = true;
+}
+
+static void on_PCU_requested_start_dynamic_run(){
+    PCU_requested_start_dynamic_run = true;
+}
+
+
+static void on_LCU_requested_stop_vertical_levitation(){
+    LCU_requested_stop_vertical_levitation = true;
+}
+static void on_LCU_requested_start_vertical_levitation(){
+    LCU_requested_start_vertical_levitation = true;
+}
+static void on_LCU_requested_stop_horizontal_levitation(){
+    LCU_requested_stop_horizontal_levitation = true;
+}
+static void on_LCU_requested_start_horizontal_levitation(){
+    LCU_requested_start_horizontal_levitation = true;
+}
+
+
+static void on_BLCU_requested_upload_code(){
+    BLCU_requested_upload_code = true;
+}
+static void on_BLCU_requested_reset_vehicle(){
+    BLCU_requested_reset_vehicle = true;
+}
+//Hay que adaptar las ordenes y tal pero por ahora las defino
+//HVSCU orders:
+HeapOrder CloseContactors{
+    HVSCU_ID::Close_contactors, &HVSCU_requested_close_contactors
+}
+HeapOrder OpenContactors{
+    HVSCU_ID::Open_contactors, &HVSCU_requested_open_contactors
+}
+HeapOrder StartChargingHV{
+    HVSCU_ID::Start_charging_HV, &HVSCU_requested_start_charging
+}
+HeapOrder StopChargingHV{
+    HVSCU_ID::Stop_charging_HV, &HVSCU_requested_stop_charging
+}
+//BMSL orders:
+HeapOrder StartChargingLV{
+    BMSL_ID::Start_charging_LV, &BMSL_requested_start_charging
+}
+HeapOrder StopChargingLV{
+    BMSL_ID::Stop_charging_LV, &BMSL_requested_stop_charging
+}
+//PCU orders:
+HeapOrder StopDynamicRun{
+    PCU_ID::Stop_dynamic_run, &PCU_requested_stop_dynamic_run
+}
+HeapOrder StartDynamicRun{
+    PCU_ID::Start_dynamic_run, &PCU_requested_start_dynamic_run
+}
+//LCU orders:
+HeapOrder StopVerticalLevitation{
+    LCU_ID::Stop_vertical_levitation, &LCU_requested_stop_vertical_levitation
+}
+HeapOrder StartVerticalLevitation{
+    LCU_ID::Start_vertical_levitation, &LCU_requested_start_vertical_levitation
+}
+HeapOrder StopHorizontalLevitation{
+    LCU_ID::Stop_horizontal_levitation, &LCU_requested_stop_horizontal_levitation
+}
+HeapOrder StartHorizontalLevitation{
+    LCU_ID::Start_horizontal_levitation, &LCU_requested_start_horizontal_levitation
+}
+//BLCU orders:
+HeapOrder UploadCode{
+    BLCU_ID::Upload_code, &BLCU_requested_upload_code
+}
+HeapOrder ResetVehicle{
+    BLCU_ID::Reset_vehicle, &BLCU_requested_reset_vehicle
+}
+
 public:
 
 
@@ -66,13 +261,20 @@ inline static const IPV4 control_station_ip{"192.168.0.9"};
 inline static const MAC local_mac{"00:80:E1:11:02:00"};
 
 inline static const uint16_t local_port{50500};//Habra que ver tambien los puertos
+inline static const uint16_t controlstation_port{50555};
 inline static const uint16_t pcu_port{50501};
 inline static const uint16_t hvcu_port{50502};
 inline static const uint16_t bmsl_port{50503};
 inline static const uint16_t lcu_port{50504};
 inline static const uint16_t blcu_port{50505};
 
-inline static const uint16_t udp_port{50400};
+inline static const uint16_t udp_controlstation_port{50400};
+inline static const uint16_t udp_port{50401};
+inline static const uint16_t pcu_udp_port{50402};
+inline static const uint16_t hvcu_udp_port{50403};
+inline static const uint16_t bmsl_udp_port{50404};
+inline static const uint16_t lcu_udp_port{50405};
+inline static const uint16_t blcu_udp_port{50406};
 
 
 Socket PCU;
@@ -81,10 +283,18 @@ Socket BMSL;
 Socket LCU;
 Socket BLCU;
 
+ServerSocket Control_station;
+
 DatagramSocket packets_endpoint;
-static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
+DatagramSocket PCU_UDP;
+DatagramSocket HVSU_UDP;
+DatagramSocket BMSL_UDP;
+DatagramSocket LCU_UDP;
+DatagramSocket BLCU_UDP;
 Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine);
+void update();
 void initialize_state_orders();
+bool connected();
 
 
 

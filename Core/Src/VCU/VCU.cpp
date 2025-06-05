@@ -21,15 +21,15 @@ void VCU::initialize_state_machines(){
     // HeapStateOrder Brake(0x0004,on_brake,GeneralStateMachine,GeneralStates::Operational);
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Operational, [&](){
-        return socket.is_connected() ...
+        return Ethernet.connected()
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        // !return socket.is_connected() y algo mas ...
+        return !Ethernet.connected()
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        // !return socket.is_connected() y algo mas ...
+        return !Ethernet.connected() // y algo mas para que no se vaya a fault al principio
     });
 
     GeneralStateMachine.add_enter_action([&](){
@@ -108,6 +108,9 @@ void VCU::initialize_state_machines(){
         requested_charging_LV_battery= false;
         requested_enable_booster= false;
     }, OperationalStates::Energyzed);
+
+    ProtectionManager::link_state_machine(GeneralStateMachine, GeneralStates::Fault);
+    ProtectionManager::add_standard_protections();
 
 }
 
