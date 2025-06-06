@@ -176,7 +176,7 @@ int main(void) {
     Regulator_out2.set_duty_cycle(0);
     Regulator_out2.turn_on();
 
-    Time::register_high_precision_alarm(1000, [&]() {
+    Time::register_low_precision_alarm(16, [&]() {
         // SDC_sense.read();
         
         reed1_input.read();
