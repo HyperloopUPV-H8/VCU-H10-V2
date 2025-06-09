@@ -7,7 +7,7 @@ namespace Communications {
     // std::vector<Ethernet::OrderTriggers> Ethernet::order_triggers{};
 
     Flags_ready Ethernet::flags_ready{};
-
+    
 
 Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine) {
     this->GeneralStateMachine = GeneralStateMachine;
@@ -33,21 +33,7 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     Socket_to_board[Boards::BMSL] = &Socket_BMSL;
     Socket_to_board[Boards::LCU] = &Socket_LCU;
     Socket_to_board[Boards::BLCU] = &Socket_BLCU;
-    //falta la blcu
-
-    Open_Contactors=HeapStateOrder(Orders_id::VCU_Open_contactors, &on_open_contactors, GeneralStateMachine, GeneralStates::Operational);
-    Close_Contactors=HeapStateOrder(Orders_id::VCU_Close_contactors, &on_close_contactors, GeneralStateMachine, GeneralStates::Operational);
-    Unbrake=HeapStateOrder(Orders_id::Unbrake, &on_unbrake, GeneralStateMachine, GeneralStates::Operational);
-    Brake=HeapStateOrder(Orders_id::Brake, &on_brake, GeneralStateMachine, GeneralStates::Operational);
-
-    Levitation_Active=HeapStateOrder(Orders_id::Levitation_active, &on_levitation_active, OperationalStateMachine, OperationalStates::Ready);
-    Propulsion_Active=HeapStateOrder(Orders_id::Propulsion_active, &on_propulsion_active, OperationalStateMachine, OperationalStates::Ready);
-    Charging_LV_Battery=HeapStateOrder(Orders_id::Charging_LV_battery, &on_charging_LV_battery, OperationalStateMachine, OperationalStates::Ready);
-    Enable_Booster=HeapStateOrder(Orders_id::Enable_booster, &on_enable_booster, OperationalStateMachine, OperationalStates::Ready);
-    Levitation_Inactive=HeapStateOrder(Orders_id::Levitation_inactive, &on_levitation_inactive, OperationalStateMachine, OperationalStates::Idle);
-    Propulsion_Inactive=HeapStateOrder(Orders_id::Propulsion_inactive, &on_propulsion_inactive, OperationalStateMachine, OperationalStates::Idle);
-    Charging_LV_Battery_Inactive=HeapStateOrder(Orders_id::Charging_LV_battery_inactive, &on_charging_LV_battery_inactive, OperationalStateMachine, OperationalStates::Idle);
-    Disable_booster=HeapStateOrder(Orders_id::Disable_booster, &on_disable_booster, OperationalStateMachine, OperationalStates::Idle);
+    //falta la bcu
 
 
 }
@@ -57,7 +43,7 @@ void Ethernet::send_order(Boards board, HeapStateOrder* Order,Orders_id id){//Lo
         Socket_to_board[board]->send_order(Order);
         id_to_timeout[id]=Time::set_timeout(5000,[&](){
             //InfoWarning("Timeout for order %d to board %s", id, Board_to_ip[board].to_string().c_str());
-        })
+        });
     }if(Order.ip==Board_to_ip[board]){
         if(id_to_timeout.contains(id)){
             Time::cancel_timeout(id_to_timeout[id]);
@@ -102,5 +88,23 @@ bool Ethernet::connected(){
     Socket_LCU.is_connected() && 
     Socket_BLCU.is_connected() &&
     Control_station.is_connected();
+}
+
+void Ethernet::initialize_state_orders(){
+    HeapStateOrder Open_Contactors(Orders_id::Open_contactors, &Ethernet::on_open_contactors, *GeneralStateMachine, GeneralStates::Operational);
+    HeapStateOrder Close_Contactors(Orders_id::Close_contactors, &Ethernet::on_close_contactors, *GeneralStateMachine, GeneralStates::Operational);
+    HeapStateOrder Unbrake(Orders_id::Unbrake, &Ethernet::on_unbrake, *GeneralStateMachine, GeneralStates::Operational);
+    HeapStateOrder Brake(Orders_id::Brake, &Ethernet::on_brake, *GeneralStateMachine, GeneralStates::Operational);
+    HeapStateOrder EndOfRun(Orders_id::EndOfRun_id, &Ethernet::on_brake, *OperationalStateMachine, OperationalStates::EndOfRun);
+    
+    HeapStateOrder Levitation_Active(Orders_id::Levitation_active, &Ethernet::on_levitation_active, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Propulsion_Active(Orders_id::Propulsion_active, &Ethernet::on_propulsion_active, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Charging_LV_Battery(Orders_id::Charging_LV_battery, &Ethernet::on_charging_LV_battery, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Enable_Booster(Orders_id::Enable_booster, &Ethernet::on_enable_booster, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Levitation_Inactive(Orders_id::Levitation_inactive, &Ethernet::on_levitation_inactive, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Propulsion_Inactive(Orders_id::Propulsion_inactive, &Ethernet::on_propulsion_inactive, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Charging_LV_Battery_Inactive(Orders_id::Charging_LV_battery_inactive, &Ethernet::on_charging_LV_battery_inactive, *OperationalStateMachine, OperationalStates::Ready);
+    HeapStateOrder Disable_booster(Orders_id::Disable_booster, &Ethernet::on_disable_booster, *OperationalStateMachine, OperationalStates::Ready);
+
 }
 };

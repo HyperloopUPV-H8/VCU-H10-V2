@@ -3,25 +3,38 @@
 
 namespace Communications {
 
+enum GeneralStates {
+    Connecting,
+    Operational,
+    Fault,
+};
 
+enum OperationalStates {    
+    Idle,
+    Precharge,
+    EndOfRun,
+    Energyzed,
+    Ready,
+};
 
 struct UDP_data {
     uint8_t prueba;//Aqui van las flags
 };
 
 enum Orders_id : uint16_t {
-    Open_contactors           = 0x0001,
-    Close_contactors          = 0x0002,
+    Open_contactors               = 0x0001,
+    Close_contactors              = 0x0002,
     Unbrake                       = 0x0003,
     Brake                         = 0x0004,
-    Levitation_active             = 0x0005,
-    Propulsion_active             = 0x0006,
-    Charging_LV_battery           = 0x0007,
-    Enable_booster                = 0x0008,
-    Levitation_inactive           = 0x0009,
-    Propulsion_inactive           = 0x0010,
-    Charging_LV_battery_inactive  = 0x0011,
-    Disable_booster               = 0x0012
+    EndOfRun_id                   = 0x0005,
+    Levitation_active             = 0x0006,
+    Propulsion_active             = 0x0007,
+    Charging_LV_battery           = 0x0008,
+    Enable_booster                = 0x0009,
+    Levitation_inactive           = 0x0010,
+    Propulsion_inactive           = 0x0011,
+    Charging_LV_battery_inactive  = 0x0012,
+    Disable_booster               = 0x0013
 };
 
 enum class Boards : uint8_t {
@@ -45,23 +58,24 @@ class Ethernet{
 
     static void send_order(Boards board, HeapStateOrder* Order,Orders_id id);
     
-    StateMachine* GeneralStateMachine = nullptr;
-    StateMachine* OperationalStateMachine = nullptr;
+    static StateMachine* GeneralStateMachine;
+    static StateMachine* OperationalStateMachine;
 
-    //State orders: Que probablemente mande a tomar por culo
-    HeapStateOrder* Open_Contactors;
-    HeapStateOrder Close_Contactors;
-    HeapStateOrder Unbrake;
-    HeapStateOrder Brake;
-    
-    HeapStateOrder Levitation_Active;
-    HeapStateOrder Propulsion_Active;
-    HeapStateOrder Charging_LV_Battery;
-    HeapStateOrder Enable_Booster;
-    HeapStateOrder Levitation_Inactive;
-    HeapStateOrder Propulsion_Inactive;
-    HeapStateOrder Charging_LV_Battery_Inactive;
-    HeapStateOrder Disable_booster;
+    //State orders: 
+    static HeapStateOrder Open_Contactors;
+    static HeapStateOrder Close_Contactors;
+    static HeapStateOrder Unbrake;
+    static HeapStateOrder Brake;
+    static HeapStateOrder EndOfRun;
+
+    static HeapStateOrder Levitation_Active;
+    static HeapStateOrder Propulsion_Active;
+    static HeapStateOrder Charging_LV_Battery;
+    static HeapStateOrder Enable_Booster;
+    static HeapStateOrder Levitation_Inactive;
+    static HeapStateOrder Propulsion_Inactive;
+    static HeapStateOrder Charging_LV_Battery_Inactive;
+    static HeapStateOrder Disable_booster;
 
     static void on_open_contactors(){
         requested_open_contactors = true; 
@@ -75,31 +89,18 @@ class Ethernet{
     static void on_unbrake(){
         requested_brake=false;
     }
+    static void on_end_of_run(){
+        requested_end_of_run = true;
+    }
     //Funciones de las flags, cambiar y tal al gusto:
-    void on_levitation_active(){ 
-        send_order(Boards::LCU,&Levitation_Active,Orders_id::Levitation_active); 
-    }
-    void on_propulsion_active(){
-        send_order(Boards::PCU,&Propulsion_Active,Orders_id::Propulsion_active);
-    }
-    void on_charging_LV_battery(){
-        send_order(Boards::BMSL,&Charging_LV_Battery,Orders_id::Charging_LV_battery);
-    }
-    void on_enable_booster(){ 
-        send_order(Boards::BCU,&Enable_Booster,Orders_id::Enable_booster);
-     }
-    void on_levitation_inactive(){
-        send_order(Boards::LCU, &Levitation_Inactive, Orders_id::Levitation_inactive);
-    }
-    void on_propulsion_inactive(){
-        send_order(Boards::PCU, &Propulsion_Inactive, Orders_id::Propulsion_inactive);
-    }
-    void on_charging_LV_battery_inactive(){
-        send_order(Boards::BMSL, &Charging_LV_Battery_Inactive, Orders_id::Charging_LV_battery_inactive);
-    }
-    void on_disable_booster(){
-        send_order(Boards::BCU, &Disable_booster, Orders_id::Disable_booster);
-    }
+    static void on_levitation_active() { send_order(Boards::LCU, &Levitation_Active, Orders_id::Levitation_active); }
+    static void on_propulsion_active() { send_order(Boards::PCU, &Propulsion_Active, Orders_id::Propulsion_active); }
+    static void on_charging_LV_battery() { send_order(Boards::BMSL, &Charging_LV_Battery, Orders_id::Charging_LV_battery); }
+    static void on_enable_booster() { send_order(Boards::BCU, &Enable_Booster, Orders_id::Enable_booster); }
+    static void on_levitation_inactive() { send_order(Boards::LCU, &Levitation_Inactive, Orders_id::Levitation_inactive); }
+    static void on_propulsion_inactive() { send_order(Boards::PCU, &Propulsion_Inactive, Orders_id::Propulsion_inactive); }
+    static void on_charging_LV_battery_inactive() { send_order(Boards::BMSL, &Charging_LV_Battery_Inactive, Orders_id::Charging_LV_battery_inactive); }
+    static void on_disable_booster() { send_order(Boards::BCU, &Disable_booster, Orders_id::Disable_booster); }
     
 
     // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
@@ -119,6 +120,9 @@ public:
     static Flags_ready flags_ready;
     inline static bool requested_open_contactors = false;
     inline static bool requested_brake = false;
+    inline static bool requested_close_contactors=false;
+    inline static bool requested_unbrake=false;
+    inline static bool requested_end_of_run=false;
 
     
 
@@ -178,14 +182,15 @@ public:
         {Orders_id::Propulsion_active, {&flags_ready.requested_propulsion_active, true}},
         {Orders_id::Charging_LV_battery, {&flags_ready.requested_charging_LV_battery, true}},
         {Orders_id::Enable_booster, {&flags_ready.requested_enable_booster, true}},
-        {Orders_id::Open_contactors, {&requested_open_contactors, true}},
-        {Orders_id::Brake, {&requested_brake, true}},
+        // {Orders_id::Open_contactors, {&requested_open_contactors, true}},
+        // {Orders_id::Brake, {&requested_brake, true}},
         {Orders_id::Levitation_inactive, {&flags_ready.requested_levitation_active, false}},
         {Orders_id::Propulsion_inactive, {&flags_ready.requested_propulsion_active, false}},
         {Orders_id::Charging_LV_battery_inactive, {&flags_ready.requested_charging_LV_battery, false}},
         {Orders_id::Disable_booster, {&flags_ready.requested_enable_booster, false}},
-        {Orders_id::Close_contactors, {&requested_open_contactors, false}},
-        {Orders_id::Unbrake, {&requested_brake, false}}
+        // {Orders_id::Close_contactors, {&requested_close_contactors, true}},
+        // {Orders_id::Unbrake, {&requested_unbrake, true}}
+        // {Orders_id::EndOfRun_id, {&requested_end_of_run, true}}
     };
 
 
@@ -193,7 +198,7 @@ public:
     Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine);
     // void update();
     bool connected();
-
+    void initialize_state_orders();
 
 
 

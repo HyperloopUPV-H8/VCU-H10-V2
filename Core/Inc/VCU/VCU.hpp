@@ -12,7 +12,6 @@ enum GeneralStates {
 
 enum OperationalStates {    
     Idle,
-    Precharge,
     EndOfRun,
     Energyzed,
     Ready,
@@ -24,10 +23,10 @@ class VCU{
     Actuators::Leds leds{Pinout::led_operational_pin, Pinout::led_fault_pin, Pinout::led_can_pin, Pinout::led_sleep_pin, Pinout::led_flash_pin};
     //HeapPacket Flags{};
 
-    StateMachine GeneralStateMachine;
-    StateMachine OperationalStateMachine;
+    static StateMachine GeneralStateMachine;
+    static StateMachine OperationalStateMachine;
 
-    Communications::Ethernet ethernet;
+    Communications::Ethernet ethernet{&GeneralStateMachine, &OperationalStateMachine};
 
 
     void initialize_state_machines();

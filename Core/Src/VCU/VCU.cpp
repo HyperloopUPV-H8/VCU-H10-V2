@@ -3,18 +3,16 @@
 
 VCU::VCU(){
     initialize_state_machines();
-    
 }
 
 void VCU::initialize_state_machines(){
-    GeneralStateMachine(GeneralStates::Connecting);
+    GeneralStateMachine= StateMachine(GeneralStates::Connecting);
     GeneralStateMachine.add_state(GeneralStates::Operational);
     GeneralStateMachine.add_state(GeneralStates::Fault);
     
-    OperationalStateMachine(OperationalStates::Idle);
-    OperationalStateMachine.add_state(OperationalStates::Precharge);
+    OperationalStateMachine=StateMachine(OperationalStates::Idle);
     OperationalStateMachine.add_state(OperationalStates::EndOfRun);
-    OperationalStateMachine.add_state(OperationalStates::Energized);
+    OperationalStateMachine.add_state(OperationalStates::Energyzed);
     OperationalStateMachine.add_state(OperationalStates::Ready);
     
     //id inventada en todas 
@@ -48,73 +46,34 @@ void VCU::initialize_state_machines(){
     }, GeneralStates::Fault);
 
 
-    OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Precharge, [&](){
-        return Ethernet::requested_close_contactors;
-    });
 
-    OperationalStateMachine.add_transition(OperationalStates::Precharge, OperationalStates::Idle, [&](){
-        return Ethernet::requested_open_contactors;
-    });
-
-    OperationalStateMachine.add_transition(OperationalStates::Precharge, OperationalStates::Energyzed, [&](){
-        // return veremos el que
-    });
-
-    OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Idle, [&](){
-        return Ethernet::requested_open_contactors;
+    OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Energyzed, [&](){
+        return ethernet.requested_close_contactors;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::EndOfRun, [&](){
-        return Ethernet::requested_unbrake;
+        return ethernet.requested_end_of_run;
     });
 
-    OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Ready, [&](){
-        return Ethernet::requested_unbrake;
+    OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Idle,  [&](){
+        return ethernet.requested_open_contactors;
+        
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Ready, OperationalStates::Energyzed, [&](){
-        return Ethernet::requested_brake;
+        return ethernet.requested_brake;
     });
 
-    // HeapStateOrder Levitation_Active(0x0005,on_levitation_active,OperationalStateMachine,OperationalStates::Ready);
-    // HeapStateOrder Propulsion_Active(0x0006,on_propulsion_active,OperationalStateMachine,OperationalStates::Ready);
-    // HeapStateOrder Charging_LV_Battery(0x0007,on_charging_LV_battery,OperationalStateMachine,OperationalStates::Ready);
-    // HeapStateOrder Enable_Booster(0x0008,on_enable_booster,OperationalStateMachine,OperationalStates::Ready);
-    // HeapStateOrder Levitation_Inactive(0x0009,on_levitation_inactive,OperationalStateMachine,OperationalStates::Idle);
-    // HeapStateOrder Propulsion_Inactive(0x0010,on_propulsion_inactive,OperationalStateMachine,OperationalStates::Idle);
-    // HeapStateOrder Charging_LV_Battery_Inactive(0x0011,on_charging_LV_battery_inactive,OperationalStateMachine,OperationalStates::Idle);
-    // HeapStateOrder Disable_booster(0x0012,on_disable_booster,OperationalStateMachine,OperationalStates::Idle);
+    OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Ready, [&](){
+        return ethernet.requested_unbrake;
+    });
 
-    OperationalStateMachine.add_enter_action([&](){
-        requested_open_contactors = false;
-    }, OperationalStates::Idle);
+    //añadir transiciones
 
-    OperationalStateMachine.add_enter_action([&](){
-        requested_close_contactors = false;
-    }, OperationalStates::Precharge);
-
-    OperationalStateMachine.add_enter_action([&](){
-        requested_unbrake = false;
-    }, OperationalStates::EndOfRun);
-
-    OperationalStateMachine.add_enter_action([&](){
-        requested_unbrake = false;
-    }, OperationalStates::Ready);
-
-    OperationalStateMachine.add_enter_action([&](){
-        requested_brake = false;
-    }, OperationalStates::Energyzed);
-
-    OperationalStateMachine.add_exit_action([&](){
-        Ethernet.Flags_ready.requested_levitation_active= false;
-        Ethernet.Flags_ready.requested_propulsion_active= false;
-        Ethernet.Flags_ready.requested_charging_LV_battery= false;
-        Ethernet.Flags_ready.requested_enable_booster= false;
-    }, OperationalStates::Energyzed);
 
     ProtectionManager::link_state_machine(GeneralStateMachine, GeneralStates::Fault);
     ProtectionManager::add_standard_protections();
+    ethernet.initialize_state_orders();
 
-    ethernet = Ethernet(&GeneralStateMachine, &OperationalStateMachine);
 }
 
