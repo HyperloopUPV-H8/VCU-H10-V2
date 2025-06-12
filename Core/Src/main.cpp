@@ -35,7 +35,7 @@ PWM Regulator_out2;
 
 //Actuator:
 bool Activate_actuator = false;
-DigitalOutput Actuator_out(PG1);
+DigitalOutput Actuator_out;
 
 static void Pump_callback() {// hay que caracterizar el pwm en estas 2
     if(selected_pump == Pump::PUMP_UNIDADES) {
@@ -47,9 +47,9 @@ static void Pump_callback() {// hay que caracterizar el pwm en estas 2
 
 static void Activate_actuator_callback() {
     if(Activate_actuator) {
-        Actuator_out.set_pin_state(PinState::ON);
+        Actuator_out.turn_on();
     } else {
-        Actuator_out.set_pin_state(PinState::OFF);
+        Actuator_out.turn_off();
     }
 }
 
@@ -69,6 +69,7 @@ int main(void) {
     SharedMemory::start();
 #endif
 
+    Actuator_out = DigitalOutput(PE7);
     Pump_c1=PWM(PE9);
     Pump_c2=PWM(PE11);
 
@@ -111,7 +112,8 @@ int main(void) {
     // DigitalInput Regulator_in2;
     // Regulator_in2.inscribe(PD12);
 
-
+    //Tapes(temporal):
+    DigitalOutput TapeE(PG1);
     
 
     //flow:
@@ -128,10 +130,10 @@ int main(void) {
     float pressure_3 = 0;
     float pressure_4 = 0;
 
-    uint8_t PresionAlta = ADC::inscribe(PB0);
-    uint8_t PresionRegulador = ADC::inscribe(PB1);
-    uint8_t PresionFrenos = ADC::inscribe(PF11);
-    uint8_t PresionCapsula = ADC::inscribe(PF12);
+    LinearSensor <float> PresionAlta(PB0,1,0,&pressure_1);
+    LinearSensor <float> PresionRegulador(PB1,1,0,&pressure_2);
+    LinearSensor <float> PresionFrenos(PF11,1,0,&pressure_3);
+    LinearSensor <float> PresionCapsula(PF12,1,0,&pressure_4);
 
 
     HeapOrder Potencia_Pump{ static_cast<uint16_t>(1731),&Pump_callback,&potencia_unidades,&selected_pump};
@@ -168,25 +170,34 @@ int main(void) {
     Pump_c2.set_duty_cycle(0); 
     Pump_c2.turn_on();
 
-    Regulator_out1.set_frequency(10000);
+    Regulator_out1.set_frequency(30000);
     Regulator_out1.set_duty_cycle(0);
     Regulator_out1.turn_on();
 
-    Regulator_out2.set_frequency(10000);
+    Regulator_out2.set_frequency(30000);
     Regulator_out2.set_duty_cycle(0);
     Regulator_out2.turn_on();
+
+    TapeE.turn_on();//Hardcoded for now, es logica inversa okay?
 
     Time::register_low_precision_alarm(16, [&]() {
         // SDC_sense.read();
         
-        reed1_input.read();
-        reed2_input.read();
-        reed3_input.read();
-        reed4_input.read();
-        reed5_input.read();
-        reed6_input.read();
-        reed7_input.read();
-        reed8_input.read();
+        // reed1_input.read();
+        // reed2_input.read();
+        // reed3_input.read();
+        // reed4_input.read();
+        // reed5_input.read();
+        // reed6_input.read();
+        // reed2_input.read();
+        // reed3_input.read();
+        // reed4_input.read();
+        // reed5_input.read();
+        // reed6_input.read();
+        // reed7_input.read();
+        // reed8_input.read();
+        // reed7_input.read();
+        // reed8_input.read();
 
         Regulator_in1.read();
         Regulator_in2.read();
@@ -194,14 +205,15 @@ int main(void) {
         flow1_input.read();
         flow2_input.read();
 
-        pressure_1 = ADC::get_int_value(PresionAlta);
-        pressure_2 = ADC::get_int_value(PresionRegulador);
-        pressure_3 = ADC::get_int_value(PresionFrenos);
-        pressure_4 = ADC::get_int_value(PresionCapsula);
+        PresionAlta.read();
+        PresionRegulador.read();
+        PresionFrenos.read();
+        PresionCapsula.read();
 
-        udp_controlstation.send_packet(Reeds);
-        udp_controlstation.send_packet(flow);
+        // udp_controlstation.send_packet(Reeds);
+        // udp_controlstation.send_packet(flow);
         udp_controlstation.send_packet(Regulator);
+        udp_controlstation.send_packet(Pression);
 
     });
 
