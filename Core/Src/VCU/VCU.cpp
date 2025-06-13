@@ -3,6 +3,8 @@
 
 VCU::VCU(){
     initialize_state_machines();
+    STLIB::start(ethernet.local_mac,ethernet.VCU_IP, "255.255.0.0","192.168.1.1",UART::uart2);
+    ethernet = Communications::Ethernet(&GeneralStateMachine, &OperationalStateMachine);
 }
 
 void VCU::initialize_state_machines(){
@@ -15,11 +17,6 @@ void VCU::initialize_state_machines(){
     OperationalStateMachine.add_state(OperationalStates::Energyzed);
     OperationalStateMachine.add_state(OperationalStates::Ready);
     
-    //id inventada en todas 
-    // HeapStateOrder Open_Contactors(0x0001,on_open_contactors,GeneralStateMachine,GeneralStates::Operational);
-    // HeapStateOrder Close_Contactors(0x0002,on_close_contactors,GeneralStateMachine,GeneralStates::Operational);
-    // HeapStateOrder Unbrake(0x0003,on_unbrake,GeneralStateMachine,GeneralStates::Operational);
-    // HeapStateOrder Brake(0x0004,on_brake,GeneralStateMachine,GeneralStates::Operational);
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Operational, [&](){
         return ethernet.connected();

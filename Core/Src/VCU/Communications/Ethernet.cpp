@@ -38,47 +38,44 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
 
 }
 
-void Ethernet::send_order(Boards board, HeapStateOrder* Order,Orders_id id){//Lo del id me imagino que se podra quitar 
+void Ethernet::recieve_order(Boards board, HeapStateOrder* Order,Orders_id id){//No hace falta mandar la placa 
     if(Order.ip==control_station_ip){//en pruebas esto!!
-        Socket_to_board[board]->send_order(Order);
-        id_to_timeout[id]=Time::set_timeout(5000,[&](){
-            //InfoWarning("Timeout for order %d to board %s", id, Board_to_ip[board].to_string().c_str());
-        });
-    }if(Order.ip==Board_to_ip[board]){
-        if(id_to_timeout.contains(id)){
-            Time::cancel_timeout(id_to_timeout[id]);
-            id_to_timeout.erase(id);
-            auto it = id_to_flag.find(id);
-            if (it != id_to_flag.end()) {
-                *(it->second.first) = it->second.second;
-            }
+        if(id_to_pending.contains(id)){
+            id_to_pending[id].control_station= true;
+            return;
         }
-        else{
-            // InfoWarning("Reciebed order %d from board %s when it hasnt been send by the VCU", id, Board_to_ip[board].to_string().c_str());
+    }if(Order.ip==Board_to_ip[board]){
+        if(id_to_pending.contains(id)){
+            id_to_pending[id].board= true;
+            return;
         }
     }else{
         ErrorHandler("Order recieved from unknow ip");
     }
 }
 
-// void Ethernet::update(){
-//     for(const auto& order_trigger : order_triggers){
-//         if(*order_trigger.flag){
-//             if(order_trigger.board == Boards::HVSCU){
-//                 Socket_HVSCU.send_order(order_trigger.order);
-//             }else if(order_trigger.board == Boards::BMSL){
-//                 Socket_BMSL.send_order(order_trigger.order);
-//             }else if(order_trigger.board == Boards::PCU){
-//                 Socket_PCU.send_order(order_trigger.order);
-//             }else if(order_trigger.board == Boards::LCU){
-//                 Socket_LCU.send_order(order_trigger.order);
-//             }else if(order_trigger.board == Boards::BLCU){
-//                 Socket_BLCU.send_order(order_trigger.order);
-//             }
-//             *order_trigger.flag = false; // Resetear la flag
-//         }
-//     }
-// }
+void Ethernet::update(){
+    for(auto& pending : id_to_pending){
+        if(pending.second.control_station){
+                Socket_to_board[id_to_orders[pending.first].Board]->send_order(*id_to_orders[pending.first].order);
+                id_to_timeout[pending.first]=Time::set_timeout(5000,[&](){
+                    InfoWarning("Timeout for order %d to control station", pending.first);
+                });
+            
+        }
+        else if(pending.second.board){
+            if(id_to_timeout.contains(pending.first)){
+                Time::cancel_timeout(id_to_timeout[pending.first]);
+                id_to_timeout.erase(pending.first);
+                auto it = id_to_flag.find(pending.first);
+                if (it != id_to_flag.end()) {
+                    *(it->second.first) = it->second.second;
+                }
+            }
+        }
+        }
+}
+
 
 bool Ethernet::connected(){
     //igual meter lo de la blcu
@@ -90,7 +87,7 @@ bool Ethernet::connected(){
     Control_station.is_connected();
 }
 
-void Ethernet::initialize_state_orders(){
+void Ethernet::initialize_state_orders(){//Por definir parametros,etc
     HeapStateOrder Open_Contactors(Orders_id::Open_contactors, &Ethernet::on_open_contactors, *GeneralStateMachine, GeneralStates::Operational);
     HeapStateOrder Close_Contactors(Orders_id::Close_contactors, &Ethernet::on_close_contactors, *GeneralStateMachine, GeneralStates::Operational);
     HeapStateOrder Unbrake(Orders_id::Unbrake, &Ethernet::on_unbrake, *GeneralStateMachine, GeneralStates::Operational);

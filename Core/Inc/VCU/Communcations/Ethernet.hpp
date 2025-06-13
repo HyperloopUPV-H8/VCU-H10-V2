@@ -53,70 +53,19 @@ struct Flags_ready{
     bool requested_enable_booster = false;
 };
 
+struct PendingOrder {
+    bool control_station;
+    bool board;
+};
+
+struct BoardOrder {
+    Boards Board;
+    HeapStateOrder* order;
+};
+
 class Ethernet{
-    private:
 
-    static void send_order(Boards board, HeapStateOrder* Order,Orders_id id);
-    
-    static StateMachine* GeneralStateMachine;
-    static StateMachine* OperationalStateMachine;
-
-    //State orders: 
-    static HeapStateOrder Open_Contactors;
-    static HeapStateOrder Close_Contactors;
-    static HeapStateOrder Unbrake;
-    static HeapStateOrder Brake;
-    static HeapStateOrder EndOfRun;
-
-    static HeapStateOrder Levitation_Active;
-    static HeapStateOrder Propulsion_Active;
-    static HeapStateOrder Charging_LV_Battery;
-    static HeapStateOrder Enable_Booster;
-    static HeapStateOrder Levitation_Inactive;
-    static HeapStateOrder Propulsion_Inactive;
-    static HeapStateOrder Charging_LV_Battery_Inactive;
-    static HeapStateOrder Disable_booster;
-
-    static void on_open_contactors(){
-        requested_open_contactors = true; 
-    }
-    static void on_close_contactors(){
-        requested_open_contactors = false; 
-    }
-    static void on_brake(){
-        requested_brake = true; 
-    }
-    static void on_unbrake(){
-        requested_brake=false;
-    }
-    static void on_end_of_run(){
-        requested_end_of_run = true;
-    }
-    //Funciones de las flags, cambiar y tal al gusto:
-    static void on_levitation_active() { send_order(Boards::LCU, &Levitation_Active, Orders_id::Levitation_active); }
-    static void on_propulsion_active() { send_order(Boards::PCU, &Propulsion_Active, Orders_id::Propulsion_active); }
-    static void on_charging_LV_battery() { send_order(Boards::BMSL, &Charging_LV_Battery, Orders_id::Charging_LV_battery); }
-    static void on_enable_booster() { send_order(Boards::BCU, &Enable_Booster, Orders_id::Enable_booster); }
-    static void on_levitation_inactive() { send_order(Boards::LCU, &Levitation_Inactive, Orders_id::Levitation_inactive); }
-    static void on_propulsion_inactive() { send_order(Boards::PCU, &Propulsion_Inactive, Orders_id::Propulsion_inactive); }
-    static void on_charging_LV_battery_inactive() { send_order(Boards::BMSL, &Charging_LV_Battery_Inactive, Orders_id::Charging_LV_battery_inactive); }
-    static void on_disable_booster() { send_order(Boards::BCU, &Disable_booster, Orders_id::Disable_booster); }
-    
-
-    // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
-    // struct OrderTriggers{
-    //     Boards board;
-    //     bool* flag;
-    //     HeapOrder* order;
-
-    // };
-    // static std::vector<OrderTriggers> order_triggers;
-
-    //Hay que ver como aplico la generacion de codigo, por ahora esto:
-
-    
-
-public:
+    public:
     static Flags_ready flags_ready;
     inline static bool requested_open_contactors = false;
     inline static bool requested_brake = false;
@@ -168,6 +117,59 @@ public:
     // DatagramSocket LCU_UDP;
     // DatagramSocket BLCU_UDP;
 
+
+
+    Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine);
+    void update();
+    bool connected();
+    void initialize_state_orders();
+
+    private:
+
+    static void recieve_order(Boards board, HeapStateOrder* Order,Orders_id id);
+    
+    static StateMachine* GeneralStateMachine;
+    static StateMachine* OperationalStateMachine;
+
+    //State orders: 
+    static HeapStateOrder Open_Contactors;
+    static HeapStateOrder Close_Contactors;
+    static HeapStateOrder Unbrake;
+    static HeapStateOrder Brake;
+    static HeapStateOrder EndOfRun;
+
+    static HeapStateOrder Levitation_Active;
+    static HeapStateOrder Propulsion_Active;
+    static HeapStateOrder Charging_LV_Battery;
+    static HeapStateOrder Enable_Booster;
+    static HeapStateOrder Levitation_Inactive;
+    static HeapStateOrder Propulsion_Inactive;
+    static HeapStateOrder Charging_LV_Battery_Inactive;
+    static HeapStateOrder Disable_booster;
+
+    
+    static void on_brake(){
+        requested_brake = true; 
+    }
+    static void on_unbrake(){
+        requested_brake=false;
+    }
+    static void on_end_of_run(){
+        requested_end_of_run = true;
+    }
+    //Funciones de las flags, y las que se mandan a otras placas, cambiar y tal al gusto:
+    static void on_open_contactors(){recieve_order(Boards::HVSCU, &Open_Contactors, Orders_id::Open_contactors);}
+    static void on_close_contactors(){recieve_order(Boards::HVSCU, &Close_Contactors, Orders_id::Close_contactors);}
+    static void on_levitation_active() { recieve_order(Boards::LCU, &Levitation_Active, Orders_id::Levitation_active); }//No hace falta mandar la placa
+    static void on_propulsion_active() { recieve_order(Boards::PCU, &Propulsion_Active, Orders_id::Propulsion_active); }
+    static void on_charging_LV_battery() { recieve_order(Boards::BMSL, &Charging_LV_Battery, Orders_id::Charging_LV_battery); }
+    static void on_enable_booster() { recieve_order(Boards::BCU, &Enable_Booster, Orders_id::Enable_booster); }
+    static void on_levitation_inactive() { recieve_order(Boards::LCU, &Levitation_Inactive, Orders_id::Levitation_inactive); }
+    static void on_propulsion_inactive() { recieve_order(Boards::PCU, &Propulsion_Inactive, Orders_id::Propulsion_inactive); }
+    static void on_charging_LV_battery_inactive() { recieve_order(Boards::BMSL, &Charging_LV_Battery_Inactive, Orders_id::Charging_LV_battery_inactive); }
+    static void on_disable_booster() { recieve_order(Boards::BCU, &Disable_booster, Orders_id::Disable_booster); }
+    
+
     inline static std::unordered_map<Boards, Socket*> Socket_to_board{};
     inline static std::unordered_map<Boards, IPV4> Board_to_ip{
         {Boards::PCU, PCU_IP},
@@ -176,34 +178,60 @@ public:
         {Boards::LCU, LCU_IP},
         {Boards::BLCU, BLCU_IP}
     };
-
+    inline static std::unordered_map<Orders_id, PendingOrder> id_to_pending{
+        {Orders_id::Levitation_active, {false, false}},
+        {Orders_id::Propulsion_active, {false, false}},
+        {Orders_id::Charging_LV_battery, {false, false}},
+        {Orders_id::Enable_booster, {false, false}},
+        {Orders_id::Open_contactors, {false, false}},
+        // {Orders_id::Brake, {false, false}},
+        {Orders_id::Close_contactors, {false, false}},
+        // {Orders_id::Unbrake, {false, false}},
+        {Orders_id::Levitation_inactive, {false, false}},
+        {Orders_id::Propulsion_inactive, {false, false}},
+        {Orders_id::Charging_LV_battery_inactive, {false, false}},
+        {Orders_id::Disable_booster, {false, false}}
+    };
     inline static std::unordered_map<Orders_id, std::pair<bool*, bool>> id_to_flag{
         {Orders_id::Levitation_active, {&flags_ready.requested_levitation_active, true}},
         {Orders_id::Propulsion_active, {&flags_ready.requested_propulsion_active, true}},
         {Orders_id::Charging_LV_battery, {&flags_ready.requested_charging_LV_battery, true}},
         {Orders_id::Enable_booster, {&flags_ready.requested_enable_booster, true}},
-        // {Orders_id::Open_contactors, {&requested_open_contactors, true}},
+        {Orders_id::Open_contactors, {&requested_open_contactors, true}},
         // {Orders_id::Brake, {&requested_brake, true}},
         {Orders_id::Levitation_inactive, {&flags_ready.requested_levitation_active, false}},
         {Orders_id::Propulsion_inactive, {&flags_ready.requested_propulsion_active, false}},
         {Orders_id::Charging_LV_battery_inactive, {&flags_ready.requested_charging_LV_battery, false}},
         {Orders_id::Disable_booster, {&flags_ready.requested_enable_booster, false}},
-        // {Orders_id::Close_contactors, {&requested_close_contactors, true}},
+        {Orders_id::Close_contactors, {&requested_close_contactors, true}},
         // {Orders_id::Unbrake, {&requested_unbrake, true}}
         // {Orders_id::EndOfRun_id, {&requested_end_of_run, true}}
     };
+    inline static std::unordered_map<Orders_id, BoardOrder> id_to_orders{
+        {Orders_id::Levitation_active, {Boards::LCU, &Levitation_Active}},
+        {Orders_id::Propulsion_active, {Boards::PCU, &Propulsion_Active}},
+        {Orders_id::Charging_LV_battery, {Boards::BMSL, &Charging_LV_Battery}},
+        {Orders_id::Enable_booster, {Boards::BCU, &Enable_Booster}},
+        {Orders_id::Open_contactors, {Boards::HVSCU, &Open_Contactors}},
+        // {Orders_id::Brake, {Boards::, &Brake}},
+        {Orders_id::Close_contactors, {Boards::HVSCU, &Close_Contactors}},
+        // {Orders_id::Unbrake, {Boards::PCU, &Unbrake}},
+        {Orders_id::Levitation_inactive, {Boards::LCU, &Levitation_Inactive}},
+        {Orders_id::Propulsion_inactive, {Boards::PCU, &Propulsion_Inactive}},
+        {Orders_id::Charging_LV_battery_inactive, {Boards::BMSL, &Charging_LV_Battery_Inactive}},
+        {Orders_id::Disable_booster, {Boards::BCU, &Disable_booster}}
+    };
+    inline static std::unordered_map<Orders_id, uint8_t> id_to_timeout{};
 
 
+    // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
+    // struct OrderTriggers{
+    //     Boards board;
+    //     bool* flag;
+    //     HeapOrder* order;
 
-    Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine);
-    // void update();
-    bool connected();
-    void initialize_state_orders();
-
-
-
-
-//definir todo el ethernet
+    // };
+    // static std::vector<OrderTriggers> order_triggers;
 
 
 };
