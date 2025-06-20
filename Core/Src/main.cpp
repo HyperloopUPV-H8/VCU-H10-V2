@@ -81,14 +81,14 @@ int main(void) {
     DigitalSensor SDC_sense(PA12,&Sdc); 
 
     //reeds
-    PinState reed1;
-    PinState reed2;
-    PinState reed3;
-    PinState reed4;
-    PinState reed5;
-    PinState reed6;
-    PinState reed7;
-    PinState reed8;
+    PinState reed1= PinState::OFF;
+    PinState reed2= PinState::OFF;
+    PinState reed3= PinState::OFF;
+    PinState reed4= PinState::OFF;
+    PinState reed5= PinState::OFF;
+    PinState reed6= PinState::OFF;
+    PinState reed7= PinState::OFF;
+    PinState reed8= PinState::OFF;
 
     DigitalSensor reed1_input(PD11,&reed1);
     DigitalSensor reed2_input(PD10,&reed2);
@@ -130,10 +130,10 @@ int main(void) {
     float pressure_3 = 0;
     float pressure_4 = 0;
 
-    LinearSensor <float> PresionAlta(PB0,1,0,&pressure_1);
-    LinearSensor <float> PresionRegulador(PB1,1,0,&pressure_2);
-    LinearSensor <float> PresionFrenos(PF11,1,0,&pressure_3);
-    LinearSensor <float> PresionCapsula(PF12,1,0,&pressure_4);
+    LinearSensor <float> PresionAlta(PB0,0.00763,0.318,&pressure_1);
+    LinearSensor <float> PresionRegulador(PB1,0.256,0.375,&pressure_2);//baja
+    LinearSensor <float> PresionFrenos(PF11,0.256,0.375,&pressure_3);//baja
+    LinearSensor <float> PresionCapsula(PF12,1,0,&pressure_4);// por caracterizar
 
 
     HeapOrder Potencia_Pump{ static_cast<uint16_t>(1731),&Pump_callback,&potencia_unidades,&selected_pump};
@@ -183,21 +183,21 @@ int main(void) {
     Time::register_low_precision_alarm(16, [&]() {
         // SDC_sense.read();
         
-        // reed1_input.read();
-        // reed2_input.read();
-        // reed3_input.read();
-        // reed4_input.read();
-        // reed5_input.read();
-        // reed6_input.read();
-        // reed2_input.read();
-        // reed3_input.read();
-        // reed4_input.read();
-        // reed5_input.read();
-        // reed6_input.read();
-        // reed7_input.read();
-        // reed8_input.read();
-        // reed7_input.read();
-        // reed8_input.read();
+        reed1_input.read();
+        reed2_input.read();
+        reed3_input.read();
+        reed4_input.read();
+        reed5_input.read();
+        reed6_input.read();
+        reed2_input.read();
+        reed3_input.read();
+        reed4_input.read();
+        reed5_input.read();
+        reed6_input.read();
+        reed7_input.read();
+        reed8_input.read();
+        reed7_input.read();
+        reed8_input.read();
 
         Regulator_in1.read();
         Regulator_in2.read();
@@ -208,9 +208,9 @@ int main(void) {
         PresionAlta.read();
         PresionRegulador.read();
         PresionFrenos.read();
-        PresionCapsula.read();
+        // PresionCapsula.read();
 
-        // udp_controlstation.send_packet(Reeds);
+        udp_controlstation.send_packet(Reeds);
         // udp_controlstation.send_packet(flow);
         udp_controlstation.send_packet(Regulator);
         udp_controlstation.send_packet(Pression);
