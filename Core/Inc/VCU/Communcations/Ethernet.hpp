@@ -76,7 +76,7 @@ class Ethernet{
     
 
     inline static const IPV4 VCU_IP{"192.168.1.3"}; //Habra que ver las ips
-    inline static const IPV4 PCU_IP{"192.168.1.3"};//Cambiar ips
+    inline static const IPV4 PCU_IP{"192.168.1.3"};
     inline static const IPV4 HVSCU_IP{"192.168.1.3"};
     inline static const IPV4 BMSL_IP{"192.168.1.3"};
     inline static const IPV4 LCU_IP{"192.168.1.3"};

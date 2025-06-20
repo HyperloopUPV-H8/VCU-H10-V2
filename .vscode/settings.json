@@ -21,6 +21,7 @@
     "atomic": "cpp",
     "vector": "cpp",
     "deque": "cpp",
-    "string": "cpp"
+    "string": "cpp",
+    "span": "cpp"
   }
 }

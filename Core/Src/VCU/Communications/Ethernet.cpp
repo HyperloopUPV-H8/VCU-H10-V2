@@ -4,7 +4,6 @@ namespace Communications {
 
 
     
-    // std::vector<Ethernet::OrderTriggers> Ethernet::order_triggers{};
 
     Flags_ready Ethernet::flags_ready{};
     
@@ -60,6 +59,10 @@ void Ethernet::update(){
                 Socket_to_board[id_to_orders[pending.first].Board]->send_order(*id_to_orders[pending.first].order);
                 id_to_timeout[pending.first]=Time::set_timeout(5000,[&](){
                     InfoWarning("Timeout for order %d to control station", pending.first);
+                    if(id_to_timeouut.contains(pending.first)){
+                        Time::cancel_timeout(id_to_timeout[pending.first]);//No se si esto es valido
+                        id_to_timeout.erase(pending.first);
+                    }
                 });
             
         }
