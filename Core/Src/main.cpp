@@ -124,7 +124,11 @@ int main(void) {
 
     DigitalSensor flow1_input(PE13,&flow1);
     DigitalSensor flow2_input(PE14,&flow2);
-    
+    //Tapes:
+    PinState TapeE_state = PinState::OFF;
+    DigitalSensor TapeE_input(PE0, &TapeE_state);
+
+    //Pressure sensors:
     float pressure_1 = 0;
     float pressure_2 = 0;
     float pressure_3 = 0;
@@ -150,6 +154,7 @@ int main(void) {
     HeapPacket flow(6457,&flow1,&flow2);
     HeapPacket Regulator(1312,&regulator_1);
     HeapPacket Pression(1312,&pressure_1,&pressure_2,&pressure_3,&pressure_4);
+    HeapPacket Tapes(1354,&TapeE_state);
 
     string mask,gateway,ip;
     mask ="255.255.0.0";
@@ -210,10 +215,13 @@ int main(void) {
         PresionFrenos.read();
         // PresionCapsula.read();
 
+        TapeE_input.read();
+
         udp_controlstation.send_packet(Reeds);
         // udp_controlstation.send_packet(flow);
         udp_controlstation.send_packet(Regulator);
         udp_controlstation.send_packet(Pression);
+        udp_controlstation.send_packet(Tapes);
 
     });
 
