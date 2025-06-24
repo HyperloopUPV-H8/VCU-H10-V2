@@ -69,6 +69,12 @@ int main(void) {
     SharedMemory::start();
 #endif
 
+
+
+    //Cosas a tener en cuenta, si los reeds leen 1 sin que haya habido orden de frenado(Excepto cuando empieza) que vaya a fault
+    //Cuando va a fault vaya frene con 100ms de delay
+
+
     Actuator_out = DigitalOutput(PE7);
     Pump_c1=PWM(PE9);
     Pump_c2=PWM(PE11);
@@ -112,7 +118,7 @@ int main(void) {
     // DigitalInput Regulator_in2;
     // Regulator_in2.inscribe(PD12);
 
-    //Tapes(temporal):
+    //Tapes output(temporal):
     DigitalOutput TapeE(PG1);
     
 
