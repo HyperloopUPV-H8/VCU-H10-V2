@@ -38,12 +38,17 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
 }
 
 void Ethernet::recieve_order(Boards board, HeapStateOrder* Order,Orders_id id){//No hace falta mandar la placa 
-    if(Order.ip==control_station_ip){//en pruebas esto!!
+    if(Order->remote_ip==nullptr){
+        ErrorHandler("Order ip is null");
+        return;
+    }
+    string remote_ip =*(Order->remote_ip);
+    if(remote_ip==control_station_ip){//en pruebas esto!!
         if(id_to_pending.contains(id)){
             id_to_pending[id].control_station= true;
             return;
         }
-    }if(Order.ip==Board_to_ip[board]){
+    }if(remote_ip==Board_to_ip[board]){
         if(id_to_pending.contains(id)){
             id_to_pending[id].board= true;
             return;
@@ -58,8 +63,8 @@ void Ethernet::update(){
         if(pending.second.control_station){
                 Socket_to_board[id_to_orders[pending.first].Board]->send_order(*id_to_orders[pending.first].order);
                 id_to_timeout[pending.first]=Time::set_timeout(5000,[&](){
-                    InfoWarning("Timeout for order %d to control station", pending.first);
-                    if(id_to_timeouut.contains(pending.first)){
+                    //InfoWarning::InfoWarningTrigger("Timeout for order to control station");
+                    if(id_to_timeout.contains(pending.first)){
                         Time::cancel_timeout(id_to_timeout[pending.first]);//No se si esto es valido
                         id_to_timeout.erase(pending.first);
                     }

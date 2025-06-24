@@ -75,13 +75,13 @@ class Ethernet{
 
     
 
-    inline static const IPV4 VCU_IP{"192.168.1.3"}; //Habra que ver las ips
-    inline static const IPV4 PCU_IP{"192.168.1.3"};
-    inline static const IPV4 HVSCU_IP{"192.168.1.3"};
-    inline static const IPV4 BMSL_IP{"192.168.1.3"};
-    inline static const IPV4 LCU_IP{"192.168.1.3"};
-    inline static const IPV4 BLCU_IP{"192.168.1.3"};
-    inline static const IPV4 control_station_ip{"192.168.0.9"};
+    inline static const string VCU_IP{"192.168.1.3"}; //Habra que ver las ips
+    inline static const string PCU_IP{"192.168.1.3"};
+    inline static const string HVSCU_IP{"192.168.1.3"};
+    inline static const string BMSL_IP{"192.168.1.3"};
+    inline static const string LCU_IP{"192.168.1.3"};
+    inline static const string BLCU_IP{"192.168.1.3"};
+    inline static const string control_station_ip{"192.168.0.9"};
 
     inline static const MAC local_mac{"00:80:E1:11:02:00"};
 
@@ -171,7 +171,7 @@ class Ethernet{
     
 
     inline static std::unordered_map<Boards, Socket*> Socket_to_board{};
-    inline static std::unordered_map<Boards, IPV4> Board_to_ip{
+    inline static std::unordered_map<Boards, string> Board_to_ip{
         {Boards::PCU, PCU_IP},
         {Boards::HVSCU, HVSCU_IP},
         {Boards::BMSL, BMSL_IP},
