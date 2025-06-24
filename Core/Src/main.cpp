@@ -45,13 +45,13 @@ static void Pump_callback() {// hay que caracterizar el pwm en estas 2
     }
 }
 
-static void Activate_actuator_callback() {
-    if(Activate_actuator) {
-        Actuator_out.turn_on();
-    } else {
-        Actuator_out.turn_off();
-    }
-}
+// static void Activate_actuator_callback() {
+//     if(Activate_actuator) {
+//         Actuator_out.turn_on();
+//     } else {
+//         Actuator_out.turn_off();
+//     }
+// }
 
 static void Set_regulator_callback() {
     float regulator_value = static_cast<float>(Selected_Regulator_pressure * (100.0 / 0.9));
@@ -73,9 +73,10 @@ int main(void) {
 
     //Cosas a tener en cuenta, si los reeds leen 1 sin que haya habido orden de frenado(Excepto cuando empieza) que vaya a fault
     //Cuando va a fault vaya frene con 100ms de delay
+    //Ids de vcu: 200 --->
 
 
-    Actuator_out = DigitalOutput(PE7);
+    // Actuator_out = DigitalOutput(PE7);
     Pump_c1=PWM(PE9);
     Pump_c2=PWM(PE11);
 
@@ -87,23 +88,23 @@ int main(void) {
     DigitalSensor SDC_sense(PA12,&Sdc); 
 
     //reeds
-    PinState reed1= PinState::OFF;
-    PinState reed2= PinState::OFF;
-    PinState reed3= PinState::OFF;
-    PinState reed4= PinState::OFF;
-    PinState reed5= PinState::OFF;
-    PinState reed6= PinState::OFF;
-    PinState reed7= PinState::OFF;
-    PinState reed8= PinState::OFF;
+    // PinState reed1= PinState::OFF;
+    // PinState reed2= PinState::OFF;
+    // PinState reed3= PinState::OFF;
+    // PinState reed4= PinState::OFF;
+    // PinState reed5= PinState::OFF;
+    // PinState reed6= PinState::OFF;
+    // PinState reed7= PinState::OFF;
+    // PinState reed8= PinState::OFF;
 
-    DigitalSensor reed1_input(PD11,&reed1);
-    DigitalSensor reed2_input(PD10,&reed2);
-    DigitalSensor reed3_input(PG4,&reed3);
-    DigitalSensor reed4_input(PG3,&reed4);
-    DigitalSensor reed5_input(PD8,&reed5);
-    DigitalSensor reed6_input(PD9,&reed6);
-    DigitalSensor reed7_input(PB15,&reed7);
-    DigitalSensor reed8_input(PB14,&reed8);
+    // DigitalSensor reed1_input(PD11,&reed1);
+    // DigitalSensor reed2_input(PD10,&reed2);
+    // DigitalSensor reed3_input(PG4,&reed3);
+    // DigitalSensor reed4_input(PG3,&reed4);
+    // DigitalSensor reed5_input(PD8,&reed5);
+    // DigitalSensor reed6_input(PD9,&reed6);
+    // DigitalSensor reed7_input(PB15,&reed7);
+    // DigitalSensor reed8_input(PB14,&reed8);
 
     
     
@@ -131,8 +132,8 @@ int main(void) {
     DigitalSensor flow1_input(PE13,&flow1);
     DigitalSensor flow2_input(PE14,&flow2);
     //Tapes:
-    PinState TapeE_state = PinState::OFF;
-    DigitalSensor TapeE_input(PE0, &TapeE_state);
+    PinState Tape_state = PinState::OFF;
+    DigitalSensor Tape_input(PE0, &Tape_state);
 
     //Pressure sensors:
     float pressure_1 = 0;
@@ -160,7 +161,7 @@ int main(void) {
     HeapPacket flow(6457,&flow1,&flow2);
     HeapPacket Regulator(1312,&regulator_1);
     HeapPacket Pression(1312,&pressure_1,&pressure_2,&pressure_3,&pressure_4);
-    HeapPacket Tapes(1354,&TapeE_state);
+    HeapPacket Tapes(1354,&Tape_state);
 
     string mask,gateway,ip;
     mask ="255.255.0.0";
@@ -194,21 +195,14 @@ int main(void) {
     Time::register_low_precision_alarm(16, [&]() {
         // SDC_sense.read();
         
-        reed1_input.read();
-        reed2_input.read();
-        reed3_input.read();
-        reed4_input.read();
-        reed5_input.read();
-        reed6_input.read();
-        reed2_input.read();
-        reed3_input.read();
-        reed4_input.read();
-        reed5_input.read();
-        reed6_input.read();
-        reed7_input.read();
-        reed8_input.read();
-        reed7_input.read();
-        reed8_input.read();
+        // reed1_input.read();
+        // reed2_input.read();
+        // reed3_input.read();
+        // reed4_input.read();
+        // reed5_input.read();
+        // reed6_input.read();
+        // reed7_input.read();
+        // reed8_input.read();
 
         Regulator_in1.read();
         Regulator_in2.read();
@@ -221,13 +215,13 @@ int main(void) {
         PresionFrenos.read();
         // PresionCapsula.read();
 
-        TapeE_input.read();
+        // Tape_input.read();
 
         udp_controlstation.send_packet(Reeds);
         // udp_controlstation.send_packet(flow);
         udp_controlstation.send_packet(Regulator);
         udp_controlstation.send_packet(Pression);
-        udp_controlstation.send_packet(Tapes);
+        // udp_controlstation.send_packet(Tapes);
 
     });
 
