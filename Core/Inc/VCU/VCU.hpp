@@ -3,6 +3,8 @@
 #include "VCU/Communcations/Ethernet.hpp"
 #include "VCU/Actuators/Leds.hpp"
 #include "VCU/Actuators/Pinout.hpp"
+#include "VCU/Actuators/Actuators.hpp"
+#include "VCU/Actuators/Brakes.hpp"
 
 enum GeneralStates {
     Connecting,
@@ -20,8 +22,9 @@ enum OperationalStates {
 class VCU{
     private:
     
-    Actuators::Leds leds{Pinout::led_operational_pin, Pinout::led_fault_pin, Pinout::led_can_pin, Pinout::led_sleep_pin, Pinout::led_flash_pin};
-    //HeapPacket Flags{};
+    Actuators::Leds leds;
+    Actuators::Actuators Actuators;
+    Actuators::Brakes Brakes;
 
     static StateMachine GeneralStateMachine;
     static StateMachine OperationalStateMachine;

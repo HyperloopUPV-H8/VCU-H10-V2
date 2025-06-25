@@ -1,6 +1,11 @@
-#include "Brakes.hpp"
+#include "VCU/Actuators/Brakes.hpp"
 
 namespace Actuators {
+
+    void Brakes::init(){
+        Actuator_out.turn_on();
+        Tape_output.turn_on();//Hardcodeado para desabilitar tapes creo, o al reves xd
+    }
 
     void Brakes::brake(){
         if(breaks_first_time){
@@ -26,4 +31,4 @@ namespace Actuators {
         reed7_input.read();
         reed8_input.read();
     }
-}:
+}

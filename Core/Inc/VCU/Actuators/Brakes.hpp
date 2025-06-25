@@ -16,8 +16,8 @@ class Brakes {
     DigitalSensor reed7_input;
     DigitalSensor reed8_input;
 
-    DigitalOutput TapeOutput;
-    DigitalSensor Tape_input;
+    DigitalOutput Tape_output;
+    // DigitalSensor Tape_input;
 
     
     public:
@@ -37,7 +37,9 @@ class Brakes {
 
 
     
-    Brakes(Pin& actuator_pin, Pin& reed1_pin, Pin& reed2_pin, Pin& reed3_pin, Pin& reed4_pin, Pin& reed5_pin, Pin& reed6_pin, Pin& reed7_pin, Pin& reed8_pin,Pin& Tapes_input,Pin&Tapes_output)
+    Brakes(Pin& actuator_pin, Pin& reed1_pin, Pin& reed2_pin, Pin& reed3_pin, Pin& reed4_pin, 
+        Pin& reed5_pin, Pin& reed6_pin, Pin& reed7_pin, Pin& reed8_pin,
+        /* Pin& Tapes_input_pin*/Pin&Tapes_output_pin)
         : Actuator_out(actuator_pin), 
           reed1_input(reed1_pin, &reed1), 
           reed2_input(reed2_pin, &reed2), 
@@ -47,15 +49,13 @@ class Brakes {
           reed6_input(reed6_pin, &reed6), 
           reed7_input(reed7_pin, &reed7), 
           reed8_input(reed8_pin, &reed8),
-          Tape_input(Tapes_input, &Tape_state),
-          TapeOutput(Tapes_output)
+        //   Tape_input(Tapes_input_pin, &Tape_state),
+          Tape_output(Tapes_output_pin)
            {
-        Actuator_out.turn_on();
-        Tapes_output.turn_on();//Hardcodeado para desabilitar tapes creo, o al reves xd
     }
-
+    void init();
     void brake();
     void unbrake();
     void read_reeds();
+};
 }
-}; 
