@@ -134,9 +134,9 @@ void VCU::initialize_state_machines(){
         return (!Brakes.Active_brakes);
     });
 
-    OperationalStateMachine.add_exit_action([&]() {
+    OperationalStateMachine.add_enter_action([&]() {
         ethernet.requested_close_contactors = false;
-    }, OperationalStates::Idle);
+    }, OperationalStates::Energyzed);
 
     
 
