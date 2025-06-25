@@ -41,6 +41,14 @@ enum Orders_id : uint16_t {
     Disable_booster               = 1010
 };
 
+enum Packets_id: uint16_t{
+    Flow                          =250,
+    Reeds                         =251,
+    Regulator                     =252,
+    Pressure                      =253,
+    Tapes_input                   =254
+};
+
 enum class Boards : uint8_t {
     PCU,
     HVSCU,
@@ -251,7 +259,7 @@ class Ethernet{
     HeapPacket* Reeds = nullptr;
     HeapPacket* flow = nullptr;
     HeapPacket* Regulator = nullptr;
-    HeapPacket* Pression = nullptr;
+    HeapPacket* Pressure = nullptr;
     // HeapPacket* Tapes = nullptr;
 
     // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui

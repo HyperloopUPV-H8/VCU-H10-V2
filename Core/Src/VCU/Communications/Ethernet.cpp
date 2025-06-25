@@ -52,17 +52,17 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     Potencia_refri = new HeapOrder(Orders_id::Potencia_refri_id, &on_potencia_refri, &this->Actuators->selected_pump_duty, &this->Actuators->selected_pump);  
     Set_Regulator = new HeapOrder(Orders_id::Set_regulator_id, &on_Set_regulator, &this->Actuators->selected_regulator_pressure, &this->Actuators->selected_regulator);
 
-    Reeds = new HeapPacket(3124, &brakes->reed1, &brakes->reed2, &brakes->reed3, &brakes->reed4, &brakes->reed5, &brakes->reed6, &brakes->reed7, &brakes->reed8);
-    flow = new HeapPacket(6457, &actuators->flow1, &actuators->flow2);
-    Regulator = new HeapPacket(1312, &actuators->regulator_1_input, &actuators->regulator_2_input);
-    Pression = new HeapPacket(1312, &actuators->pressure_1, &actuators->pressure_2, &actuators->pressure_3, &actuators->pressure_4);
+    Reeds = new HeapPacket(Packets_id::Reeds, &brakes->reed1, &brakes->reed2, &brakes->reed3, &brakes->reed4, &brakes->reed5, &brakes->reed6, &brakes->reed7, &brakes->reed8);
+    flow = new HeapPacket(Packets_id::Flow, &actuators->flow1, &actuators->flow2);
+    Regulator = new HeapPacket(Packets_id::Regulator, &actuators->regulator_1_input, &actuators->regulator_2_input);
+    Pressure = new HeapPacket(Packets_id::Pressure, &actuators->pressure_1, &actuators->pressure_2, &actuators->pressure_3, &actuators->pressure_4);
     // Tapes = new HeapPacket(1354, &brakes->Tape_state);
 
     Time::register_low_precision_alarm(16, [&]() {
         packets_endpoint.send_packet(*Reeds);
         packets_endpoint.send_packet(*flow);
         packets_endpoint.send_packet(*Regulator);
-        packets_endpoint.send_packet(*Pression);
+        packets_endpoint.send_packet(*Pressure);
         // packets_endpoint.send_packet(*Tapes);
 
     });
