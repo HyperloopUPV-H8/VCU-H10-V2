@@ -2,6 +2,10 @@
 
 namespace Communications {
 
+    StateMachine* Ethernet::GeneralStateMachine = nullptr;
+    StateMachine* Ethernet::OperationalStateMachine = nullptr;
+    Actuators::Actuators* Ethernet::Actuators = nullptr;
+    Actuators::Brakes* Ethernet::Brakes = nullptr;
     HeapOrder* Ethernet::Potencia_refri = nullptr;
     HeapOrder* Ethernet::Set_Regulator = nullptr;
 
@@ -18,7 +22,6 @@ namespace Communications {
     HeapStateOrder* Ethernet::Propulsion_Inactive = nullptr;
     HeapStateOrder* Ethernet::Charging_LV_Battery_Inactive = nullptr;
     HeapStateOrder* Ethernet::Disable_booster = nullptr;
-
 
     Flags_ready Ethernet::flags_ready{};
     

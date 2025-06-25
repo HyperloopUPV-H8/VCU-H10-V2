@@ -18,7 +18,7 @@ namespace Actuators{
 
             Regulator_out2.set_frequency(30000);
             Regulator_out2.set_duty_cycle(0);
-            Regulator_out2.turn_on();>
+            Regulator_out2.turn_on();
     }
 
     void Actuators::set_regulator_1(float value){
