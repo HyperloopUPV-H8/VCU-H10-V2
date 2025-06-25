@@ -188,6 +188,10 @@ class Ethernet{
     }
 
     static void on_Set_regulator(){
+        if(Actuators->selected_regulator_pressure>6){
+            Actuators->selected_regulator_pressure =6;
+            //InfoWarning::InfoWarningTrigger("Cannot exceed 6 bar on regulator pressure");
+        }
         if(Actuators->selected_regulator == Actuators::Regulator::REGULATOR_1){
             Actuators->set_regulator_1(Actuators->selected_regulator_pressure);
         }else if(Actuators->selected_regulator == Actuators::Regulator::REGULATOR_2){
