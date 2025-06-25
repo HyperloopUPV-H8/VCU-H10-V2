@@ -37,10 +37,10 @@ VCU::VCU()
     , ethernet(&GeneralStateMachine, &OperationalStateMachine, &Actuators, &Brakes)
 {
     initialize_state_machines();
+    ethernet.initialize_state_orders();
     STLIB::start(ethernet.local_mac,ethernet.VCU_IP, "255.255.0.0","192.168.1.1",UART::uart2);
     Actuators.init();
     Brakes.init();
-    ethernet.initialize_state_orders();
 
     Time::register_low_precision_alarm(16, [&]() {
         Brakes.read_reeds();
