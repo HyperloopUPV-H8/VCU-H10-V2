@@ -22,23 +22,23 @@ enum OperationalStates {
 struct Flags_udp {
     uint8_t prueba;//Aqui van las flags
 };
-
+//IDs inventadas excepto las de id con 200
 enum Orders_id : uint16_t {
-    Open_contactors               = 1,
-    Close_contactors              = 2,
+    Open_contactors               = 1000,
+    Close_contactors              = 1001,
     Unbrake                       =201,
     Brake                         =200,
     Potencia_refri_id             =202,
     Set_regulator_id              =203,
-    EndOfRun_id                   = 5,
-    Levitation_active             = 6,
-    Propulsion_active             = 7,
-    Charging_LV_battery           = 8,
-    Enable_booster                = 9,
-    Levitation_inactive           = 10,
-    Propulsion_inactive           = 11,
-    Charging_LV_battery_inactive  = 13,
-    Disable_booster               = 13
+    EndOfRun_id                   = 1002,
+    Levitation_active             = 1003,
+    Propulsion_active             = 1004,
+    Charging_LV_battery           = 1005,
+    Enable_booster                = 1006,
+    Levitation_inactive           = 1007,
+    Propulsion_inactive           = 1008,
+    Charging_LV_battery_inactive  = 1009,
+    Disable_booster               = 1010
 };
 
 enum class Boards : uint8_t {
