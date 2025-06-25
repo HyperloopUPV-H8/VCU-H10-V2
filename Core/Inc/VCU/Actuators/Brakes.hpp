@@ -16,7 +16,6 @@ class Brakes {
     DigitalSensor reed7_input;
     DigitalSensor reed8_input;
 
-    DigitalOutput Tape_output;
     // DigitalSensor Tape_input;
 
     
@@ -32,6 +31,12 @@ class Brakes {
     PinState reed6= PinState::OFF;
     PinState reed7= PinState::OFF;
     PinState reed8= PinState::OFF;
+
+    bool All_reeds = false;
+
+    bool Tape_enabled = true;
+    DigitalOutput Tape_output;
+
 
     PinState Tape_state = PinState::OFF;
 

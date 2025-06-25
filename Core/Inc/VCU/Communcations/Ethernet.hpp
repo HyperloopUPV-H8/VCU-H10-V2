@@ -30,6 +30,8 @@ enum Orders_id : uint16_t {
     Brake                         =200,
     Potencia_refri_id             =202,
     Set_regulator_id              =203,
+    Enable_tapes_id               =204,
+    Disable_tapes_id              =205,
     EndOfRun_id                   = 1002,
     Levitation_active             = 1003,
     Propulsion_active             = 1004,
@@ -46,7 +48,8 @@ enum Packets_id: uint16_t{
     Reeds                         =251,
     Regulator                     =252,
     Pressure                      =253,
-    Tapes_input                   =254
+    Tapes_input                   =254,
+    Tapes_enable                  =255
 };
 
 enum class Boards : uint8_t {
@@ -146,6 +149,8 @@ class Ethernet{
     //Heap Orders:
     static HeapOrder* Potencia_refri;
     static HeapOrder* Set_Regulator;
+    static HeapOrder* Enable_tapes;
+    static HeapOrder* Disable_tapes;
 
     //State orders: 
     static HeapStateOrder* Open_Contactors;
@@ -190,6 +195,15 @@ class Ethernet{
         }
     }
 
+    static void on_Enable_tapes(){
+        Brakes->Tape_enabled = true;
+        Brakes->Tape_output.turn_on();
+    }
+
+    static void on_Disable_tapes(){
+        Brakes->Tape_enabled = false;
+        Brakes->Tape_output.turn_off();
+    }
     //Funciones de las flags, y las que se mandan a otras placas, cambiar y tal al gusto:
     static void on_open_contactors(){recieve_order(Boards::HVSCU, Open_Contactors, Orders_id::Open_contactors);}
     static void on_close_contactors(){recieve_order(Boards::HVSCU, Close_Contactors, Orders_id::Close_contactors);}
@@ -261,6 +275,7 @@ class Ethernet{
     HeapPacket* Regulator = nullptr;
     HeapPacket* Pressure = nullptr;
     // HeapPacket* Tapes = nullptr;
+    HeapPacket* Tapes_enable = nullptr;
 
     // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
     // struct OrderTriggers{

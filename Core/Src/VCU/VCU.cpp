@@ -78,15 +78,11 @@ void VCU::initialize_state_machines(){
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        return (((Brakes.reed1== PinState::ON || Brakes.reed2==PinState::ON || Brakes.reed3==PinState::ON ||
-               Brakes.reed4==PinState::ON || Brakes.reed5==PinState::ON || Brakes.reed6==PinState::ON ||
-               Brakes.reed7==PinState::ON || Brakes.reed8==PinState::ON) && Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
+        return ((Brakes.All_reeds&& Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        return (((Brakes.reed1== PinState::ON || Brakes.reed2==PinState::ON || Brakes.reed3==PinState::ON ||
-               Brakes.reed4==PinState::ON || Brakes.reed5==PinState::ON || Brakes.reed6==PinState::ON ||
-               Brakes.reed7==PinState::ON || Brakes.reed8==PinState::ON) && Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
+        return ((Brakes.All_reeds && Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){

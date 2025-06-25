@@ -30,5 +30,14 @@ namespace Actuators {
         reed6_input.read();
         reed7_input.read();
         reed8_input.read();
+
+        All_reeds = reed1 && 
+                    reed2 &&
+                    reed3 &&
+                    reed4 &&
+                    reed5 &&
+                    reed6 &&
+                    reed7 &&
+                    reed8;
     }
 }
