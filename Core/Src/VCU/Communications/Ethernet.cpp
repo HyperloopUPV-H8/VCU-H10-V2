@@ -8,6 +8,8 @@ namespace Communications {
     Actuators::Brakes* Ethernet::Brakes = nullptr;
     HeapOrder* Ethernet::Potencia_refri = nullptr;
     HeapOrder* Ethernet::Set_Regulator = nullptr;
+    HeapOrder* Ethernet::Enable_tapes = nullptr;
+    HeapOrder* Ethernet::Disable_tapes = nullptr;
 
     HeapStateOrder* Ethernet::Open_Contactors = nullptr;
     HeapStateOrder* Ethernet::Close_Contactors = nullptr;
