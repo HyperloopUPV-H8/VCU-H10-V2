@@ -55,7 +55,7 @@ namespace Actuators{
         flow2_input.read();
     }
 
-    // void Actuators::read_sdc() {
-    //     SDC_sensor.read();
-    // }
+    void Actuators::read_sdc() {
+        SDC_sensor.read();
+    }
 }

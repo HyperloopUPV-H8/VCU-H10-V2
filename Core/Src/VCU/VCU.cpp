@@ -41,6 +41,15 @@ VCU::VCU()
     Actuators.init();
     Brakes.init();
     ethernet.initialize_state_orders();
+
+    Time::register_low_precision_alarm(16, [&]() {
+        Brakes.read_reeds();
+        Actuators.read_regulators();
+        Actuators.read_pressure();
+        Actuators.read_flow();
+        Actuators.read_sdc();
+    });
+        
 }
 
 
@@ -80,6 +89,14 @@ void VCU::initialize_state_machines(){
                Brakes.reed7==PinState::ON || Brakes.reed8==PinState::ON) && Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
     });
 
+    GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
+        return (!Actuators.Sdc);
+    });
+
+    GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
+        return (!Actuators.Sdc);
+    });
+
     GeneralStateMachine.add_enter_action([&](){
         leds.leds_connecting();
     }, GeneralStates::Connecting);
@@ -110,28 +127,23 @@ void VCU::initialize_state_machines(){
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Ready, OperationalStates::Energyzed, [&](){
-        return ethernet.requested_brake && Brakes.Active_brakes;
+        return Brakes.Active_brakes;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Ready, [&](){
-        return ethernet.requested_unbrake && (!Brakes.Active_brakes);
+        return (!Brakes.Active_brakes);
     });
 
     OperationalStateMachine.add_exit_action([&]() {
         ethernet.requested_close_contactors = false;
     }, OperationalStates::Idle);
 
-    OperationalStateMachine.add_exit_action([&]() {
-        ethernet.requested_brake = false;
-    }, OperationalStates::Ready);
+    
 
     OperationalStateMachine.add_enter_action([&]() {
         ethernet.requested_end_of_run = false;
     }, OperationalStates::EndOfRun);
 
-    OperationalStateMachine.add_enter_action([&]() {
-        ethernet.requested_unbrake = false;
-    }, OperationalStates::Ready);
 
     OperationalStateMachine.add_enter_action([&]() {
         ethernet.requested_open_contactors = false;
@@ -143,6 +155,12 @@ void VCU::initialize_state_machines(){
     ProtectionManager::link_state_machine(GeneralStateMachine, GeneralStates::Fault);
     ProtectionManager::add_standard_protections();
     ethernet.initialize_state_orders();
+
+}
+
+void VCU::update(){
+    STLIB::update();
+    ethernet.update();
 
 }
 

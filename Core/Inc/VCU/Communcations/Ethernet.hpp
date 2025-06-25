@@ -26,8 +26,10 @@ struct Flags_udp {
 enum Orders_id : uint16_t {
     Open_contactors               = 1,
     Close_contactors              = 2,
-    Unbrake                       = 3,
-    Brake                         = 4,
+    Unbrake                       =201,
+    Brake                         =200,
+    Potencia_refri_id             =202,
+    Set_regulator_id              =203,
     EndOfRun_id                   = 5,
     Levitation_active             = 6,
     Propulsion_active             = 7,
@@ -70,9 +72,7 @@ class Ethernet{
     public:
     static Flags_ready flags_ready;
     inline static bool requested_open_contactors = false;
-    inline static bool requested_brake = false;
     inline static bool requested_close_contactors=false;
-    inline static bool requested_unbrake=false;
     inline static bool requested_end_of_run=false;
 
     
@@ -135,6 +135,10 @@ class Ethernet{
     static Actuators::Actuators* Actuators;
     static Actuators::Brakes* Brakes;
 
+    //Heap Orders:
+    static HeapOrder* Potencia_refri;
+    static HeapOrder* Set_Regulator;
+
     //State orders: 
     static HeapStateOrder* Open_Contactors;
     static HeapStateOrder* Close_Contactors;
@@ -153,14 +157,31 @@ class Ethernet{
 
     
     static void on_brake(){
-        requested_brake = true; 
+        Brakes->brake();
     }
     static void on_unbrake(){
-        requested_brake=false;
+        Brakes->unbrake();
     }
     static void on_end_of_run(){
         requested_end_of_run = true;
     }
+
+    static void on_potencia_refri(){
+        if(Actuators->selected_pump == Actuators::Pump::PUMP_UNIDADES) {
+            Actuators->set_pump_1(Actuators->selected_pump_duty);
+        } else if (Actuators->selected_pump == Actuators::Pump::PUMP_PLACAS) {
+            Actuators->set_pump_2(Actuators->selected_pump_duty);
+        }
+    }
+
+    static void on_Set_regulator(){
+        if(Actuators->selected_regulator == Actuators::Regulator::REGULATOR_1){
+            Actuators->set_regulator_1(Actuators->selected_regulator_pressure);
+        }else if(Actuators->selected_regulator == Actuators::Regulator::REGULATOR_2){
+            Actuators->set_regulator_2(Actuators->selected_regulator_pressure);
+        }
+    }
+
     //Funciones de las flags, y las que se mandan a otras placas, cambiar y tal al gusto:
     static void on_open_contactors(){recieve_order(Boards::HVSCU, Open_Contactors, Orders_id::Open_contactors);}
     static void on_close_contactors(){recieve_order(Boards::HVSCU, Close_Contactors, Orders_id::Close_contactors);}
@@ -227,6 +248,11 @@ class Ethernet{
     };
     inline static std::unordered_map<Orders_id, uint8_t> id_to_timeout{};
 
+    HeapPacket* Reeds = nullptr;
+    HeapPacket* flow = nullptr;
+    HeapPacket* Regulator = nullptr;
+    HeapPacket* Pression = nullptr;
+    // HeapPacket* Tapes = nullptr;
 
     // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
     // struct OrderTriggers{

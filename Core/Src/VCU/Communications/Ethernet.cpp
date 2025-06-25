@@ -2,6 +2,9 @@
 
 namespace Communications {
 
+    HeapOrder* Ethernet::Potencia_refri = nullptr;
+    HeapOrder* Ethernet::Set_Regulator = nullptr;
+
     HeapStateOrder* Ethernet::Open_Contactors = nullptr;
     HeapStateOrder* Ethernet::Close_Contactors = nullptr;
     HeapStateOrder* Ethernet::Unbrake = nullptr;
@@ -27,19 +30,14 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     this->Brakes = brakes;
     
     Control_station=ServerSocket(VCU_IP,local_port);
-
-    Socket_PCU = Socket(VCU_IP,pcu_port,PCU_IP,local_port);
-    Socket_HVSCU = Socket(VCU_IP,hvscu_port,HVSCU_IP,local_port);
-    Socket_BMSL = Socket(VCU_IP,bmsl_port,BMSL_IP,local_port);
-    Socket_LCU = Socket(VCU_IP,lcu_port,LCU_IP,local_port);
-    Socket_BLCU = Socket(VCU_IP,blcu_port,BLCU_IP,local_port);
+    //LO comento para probar sin tener todo conectado
+    // Socket_PCU = Socket(VCU_IP,pcu_port,PCU_IP,local_port);
+    // Socket_HVSCU = Socket(VCU_IP,hvscu_port,HVSCU_IP,local_port);
+    // Socket_BMSL = Socket(VCU_IP,bmsl_port,BMSL_IP,local_port);
+    // Socket_LCU = Socket(VCU_IP,lcu_port,LCU_IP,local_port);
+    // Socket_BLCU = Socket(VCU_IP,blcu_port,BLCU_IP,local_port);
 
     packets_endpoint =DatagramSocket(VCU_IP, udp_controlstation_port,control_station_ip, udp_port);
-    // PCU_UDP = (VCU_IP, pcu_udp_port, PCU_IP, udp_port);
-    // HVSU_UDP = (VCU_IP, hvcu_udp_port, HVSU_IP, udp_port);
-    // BMSL_UDP = (VCU_IP, bmsl_udp_port, BMSL_IP, udp_port);
-    // LCU_UDP = (VCU_IP, lcu_udp_port, LCU_IP, udp_port);
-    // BLCU_UDP = (VCU_IP, blcu_udp_port, BLCU_IP, udp_port);
 
     Socket_to_board[Boards::PCU] = &Socket_PCU;
     Socket_to_board[Boards::HVSCU] = &Socket_HVSCU;
@@ -48,7 +46,23 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     Socket_to_board[Boards::BLCU] = &Socket_BLCU;
     //falta la bcu
 
+    Potencia_refri = new HeapOrder(Orders_id::Potencia_refri_id, &on_potencia_refri, &this->Actuators->selected_pump_duty, &this->Actuators->selected_pump);  
+    Set_Regulator = new HeapOrder(Orders_id::Set_regulator_id, &on_Set_regulator, &this->Actuators->selected_regulator_pressure, &this->Actuators->selected_regulator);
 
+    Reeds = new HeapPacket(3124, &brakes->reed1, &brakes->reed2, &brakes->reed3, &brakes->reed4, &brakes->reed5, &brakes->reed6, &brakes->reed7, &brakes->reed8);
+    flow = new HeapPacket(6457, &actuators->flow1, &actuators->flow2);
+    Regulator = new HeapPacket(1312, &actuators->regulator_1_input, &actuators->regulator_2_input);
+    Pression = new HeapPacket(1312, &actuators->pressure_1, &actuators->pressure_2, &actuators->pressure_3, &actuators->pressure_4);
+    // Tapes = new HeapPacket(1354, &brakes->Tape_state);
+
+    Time::register_low_precision_alarm(16, [&]() {
+        packets_endpoint.send_packet(*Reeds);
+        packets_endpoint.send_packet(*flow);
+        packets_endpoint.send_packet(*Regulator);
+        packets_endpoint.send_packet(*Pression);
+        // packets_endpoint.send_packet(*Tapes);
+
+    });
 }
 
 void Ethernet::recieve_order(Boards board, HeapStateOrder* Order,Orders_id id){//No hace falta mandar la placa 

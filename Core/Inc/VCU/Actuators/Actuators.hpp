@@ -2,6 +2,16 @@
 #include "ST-LIB.hpp"
 
 namespace Actuators {
+
+    enum Pump{
+    PUMP_UNIDADES = 0,
+    PUMP_PLACAS = 1
+    };
+
+    enum Regulator{
+        REGULATOR_1 = 0,
+        REGULATOR_2 = 1
+    };
     class Actuators{
         private:
 
@@ -26,14 +36,14 @@ namespace Actuators {
 
 
         public:
-        float selected_regulator_pressure1;
-        float selected_regulator_pressure2;
+        Regulator selected_regulator;
+        Pump selected_pump;
+        float selected_regulator_pressure;
 
         PinState regulator_1_input;
         PinState regulator_2_input;  
 
-        uint32_t pump1;
-        uint32_t pump2;
+        uint32_t selected_pump_duty;
 
         PinState flow1;
         PinState flow2; 
@@ -73,7 +83,7 @@ namespace Actuators {
         void read_regulators();
         void read_pressure();
         void read_flow();
-        // void read_sdc();
+        void read_sdc();
 
 
     };
