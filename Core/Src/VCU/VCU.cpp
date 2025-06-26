@@ -34,21 +34,26 @@ VCU::VCU()
         Pinout::reed8_pin,
         Pinout::Tape_pin
     )
-    , ethernet(&GeneralStateMachine, &OperationalStateMachine, &Actuators, &Brakes)
+    // , ethernet(&GeneralStateMachine, &OperationalStateMachine, &Actuators, &Brakes)
 {
-    initialize_state_machines();
-    ethernet.initialize_state_orders();
-    STLIB::start(ethernet.local_mac,ethernet.VCU_IP, "255.255.0.0","192.168.1.1",UART::uart2);
+    
+    
+    STLIB::start("00:80:E1:11:02:00", ethernet->VCU_IP, "255.255.0.0");
     Actuators.init();
+    ethernet = new Communications::Ethernet(&GeneralStateMachine, &OperationalStateMachine, &Actuators, &Brakes);
+    initialize_state_machines();
+    //ethernet->initialize_state_orders();
     Brakes.init();
 
-    Time::register_low_precision_alarm(16, [&]() {
-        Brakes.read_reeds();
-        Actuators.read_regulators();
-        Actuators.read_pressure();
-        Actuators.read_flow();
-        Actuators.read_sdc();
-    });
+    // Time::register_low_precision_alarm(16, [&]() {
+    //     Brakes.read_reeds();
+    //     Actuators.read_regulators();
+    //     Actuators.read_pressure();
+    //     Actuators.read_flow();
+    //     Actuators.read_sdc();
+    // });
+
+    
         
 }
 
@@ -66,15 +71,15 @@ void VCU::initialize_state_machines(){
     
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Operational, [&](){
-        return ethernet.connected();
+        return ethernet->connected();
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        return !ethernet.connected();
+        return !ethernet->connected();
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        return !ethernet.connected(); // y algo mas para que no se vaya a fault al principio
+        return !ethernet->connected(); // y algo mas para que no se vaya a fault al principio
     });
 
     GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
@@ -110,15 +115,15 @@ void VCU::initialize_state_machines(){
 //el sdc tambien manda a fault?
 
     OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Energyzed, [&](){
-        return ethernet.requested_close_contactors;
+        return ethernet->requested_close_contactors;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::EndOfRun, [&](){
-        return ethernet.requested_end_of_run;
+        return ethernet->requested_end_of_run;
     });
 
     OperationalStateMachine.add_transition(OperationalStates::Energyzed, OperationalStates::Idle,  [&](){
-        return ethernet.requested_open_contactors;
+        return ethernet->requested_open_contactors;
         
     });
 
@@ -131,18 +136,18 @@ void VCU::initialize_state_machines(){
     });
 
     OperationalStateMachine.add_enter_action([&]() {
-        ethernet.requested_close_contactors = false;
+        ethernet->requested_close_contactors = false;
     }, OperationalStates::Energyzed);
 
     
 
     OperationalStateMachine.add_enter_action([&]() {
-        ethernet.requested_end_of_run = false;
+        ethernet->requested_end_of_run = false;
     }, OperationalStates::EndOfRun);
 
 
     OperationalStateMachine.add_enter_action([&]() {
-        ethernet.requested_open_contactors = false;
+        ethernet->requested_open_contactors = false;
     }, OperationalStates::Idle);
     
 
@@ -150,13 +155,13 @@ void VCU::initialize_state_machines(){
 
     ProtectionManager::link_state_machine(GeneralStateMachine, GeneralStates::Fault);
     ProtectionManager::add_standard_protections();
-    ethernet.initialize_state_orders();
+    //ethernet->initialize_state_orders();
 
 }
 
 void VCU::update(){
     STLIB::update();
-    ethernet.update();
+    ethernet->update();
 
 }
 

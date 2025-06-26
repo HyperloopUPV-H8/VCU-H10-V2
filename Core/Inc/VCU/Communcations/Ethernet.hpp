@@ -136,6 +136,7 @@ class Ethernet{
     void update();
     bool connected();
     void initialize_state_orders();
+    void send_packets();
 
     private:
 

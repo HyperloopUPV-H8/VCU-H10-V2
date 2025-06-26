@@ -9,7 +9,7 @@
 
 #define REED1_PIN PD11
 #define REED2_PIN PD10
-#define REED3_PIN PG4
+#define REED3_PIN PG2
 #define REED4_PIN PG3
 #define REED5_PIN PD8
 #define REED6_PIN PD9

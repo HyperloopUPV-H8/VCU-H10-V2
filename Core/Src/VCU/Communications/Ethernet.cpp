@@ -1,5 +1,7 @@
 #include "VCU/Communcations/Ethernet.hpp"
 
+static bool flag_send_packets = false;
+
 namespace Communications {
 
     StateMachine* Ethernet::GeneralStateMachine = nullptr;
@@ -28,13 +30,18 @@ namespace Communications {
     Flags_ready Ethernet::flags_ready{};
     
 
-Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine,Actuators::Actuators* actuators, Actuators::Brakes* brakes) {
+Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalStateMachine,Actuators::Actuators* actuators, Actuators::Brakes* brakes)
+:
+Control_station(VCU_IP,local_port),
+packets_endpoint(VCU_IP, udp_controlstation_port,control_station_ip, udp_controlstation_port)
+
+ {
     this->GeneralStateMachine = GeneralStateMachine;
     this->OperationalStateMachine = OperationalStateMachine;
     this->Actuators = actuators;
     this->Brakes = brakes;
     
-    Control_station=ServerSocket(VCU_IP,local_port);
+    // Control_station=ServerSocket(VCU_IP,local_port);
     //LO comento para probar sin tener todo conectado
     // Socket_PCU = Socket(VCU_IP,pcu_port,PCU_IP,local_port);
     // Socket_HVSCU = Socket(VCU_IP,hvscu_port,HVSCU_IP,local_port);
@@ -42,7 +49,7 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     // Socket_LCU = Socket(VCU_IP,lcu_port,LCU_IP,local_port);
     // Socket_BLCU = Socket(VCU_IP,blcu_port,BLCU_IP,local_port);
 
-    packets_endpoint =DatagramSocket(VCU_IP, udp_controlstation_port,control_station_ip, udp_port);
+    // packets_endpoint =DatagramSocket(VCU_IP, udp_controlstation_port,control_station_ip, udp_port);
 
     Socket_to_board[Boards::PCU] = &Socket_PCU;
     Socket_to_board[Boards::HVSCU] = &Socket_HVSCU;
@@ -64,13 +71,21 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     Tapes_enable = new HeapPacket(Packets_id::Tapes_enable, &brakes->Tape_enabled);
 
     Time::register_low_precision_alarm(16, [&]() {
-        packets_endpoint.send_packet(*Reeds);
-        packets_endpoint.send_packet(*flow);
-        packets_endpoint.send_packet(*Regulator);
-        packets_endpoint.send_packet(*Pressure);
-        // packets_endpoint.send_packet(*Tapes);
+        
+        flag_send_packets = true;
 
     });
+}
+
+
+void Ethernet::send_packets() 
+{
+
+    packets_endpoint.send_packet(*Reeds);
+    packets_endpoint.send_packet(*flow);
+    packets_endpoint.send_packet(*Regulator);
+    packets_endpoint.send_packet(*Pressure);
+    // packets_endpoint.send_packet(*Tapes);
 }
 
 void Ethernet::recieve_order(Boards board, HeapStateOrder* Order,Orders_id id){//No hace falta mandar la placa 
@@ -95,40 +110,47 @@ void Ethernet::recieve_order(Boards board, HeapStateOrder* Order,Orders_id id){/
 }
 
 void Ethernet::update(){
-    for(auto& pending : id_to_pending){
-        if(pending.second.control_station){
-                Socket_to_board[id_to_orders[pending.first].Board]->send_order(*id_to_orders[pending.first].order);
-                id_to_timeout[pending.first]=Time::set_timeout(5000,[&](){
-                    //InfoWarning::InfoWarningTrigger("Timeout for order to control station");
-                    if(id_to_timeout.contains(pending.first)){
-                        Time::cancel_timeout(id_to_timeout[pending.first]);//No se si esto es valido
-                        id_to_timeout.erase(pending.first);
-                    }
-                });
+    // for(auto& pending : id_to_pending){
+    //     if(pending.second.control_station){
+    //             Socket_to_board[id_to_orders[pending.first].Board]->send_order(*id_to_orders[pending.first].order);
+    //             id_to_timeout[pending.first]=Time::set_timeout(5000,[&](){
+    //                 //InfoWarning::InfoWarningTrigger("Timeout for order to control station");
+    //                 if(id_to_timeout.contains(pending.first)){
+    //                     Time::cancel_timeout(id_to_timeout[pending.first]);//No se si esto es valido
+    //                     id_to_timeout.erase(pending.first);
+    //                 }
+    //             });
             
-        }
-        else if(pending.second.board){
-            if(id_to_timeout.contains(pending.first)){
-                Time::cancel_timeout(id_to_timeout[pending.first]);
-                id_to_timeout.erase(pending.first);
-                auto it = id_to_flag.find(pending.first);
-                if (it != id_to_flag.end()) {
-                    *(it->second.first) = it->second.second;
-                }
-            }
-        }
-        }
+    //     }
+    //     else if(pending.second.board){
+    //         if(id_to_timeout.contains(pending.first)){
+    //             Time::cancel_timeout(id_to_timeout[pending.first]);
+    //             id_to_timeout.erase(pending.first);
+    //             auto it = id_to_flag.find(pending.first);
+    //             if (it != id_to_flag.end()) {
+    //                 *(it->second.first) = it->second.second;
+    //             }
+    //         }
+    //     }
+    //     }
+
+    if(flag_send_packets)
+    {
+        flag_send_packets = false;
+        send_packets();
+    }
 }
 
 
 bool Ethernet::connected(){
     //igual meter lo de la blcu
-    return Socket_PCU.is_connected() && 
-    Socket_HVSCU.is_connected() && 
-    Socket_BMSL.is_connected() && 
-    Socket_LCU.is_connected() && 
-    Socket_BLCU.is_connected() &&
-    Control_station.is_connected();
+    // return Socket_PCU.is_connected() && 
+    // Socket_HVSCU.is_connected() && 
+    // Socket_BMSL.is_connected() && 
+    // Socket_LCU.is_connected() && 
+    // Socket_BLCU.is_connected() &&
+    // Control_station.is_connected();
+    return Control_station.is_connected();
 }
 
 void Ethernet::initialize_state_orders() {

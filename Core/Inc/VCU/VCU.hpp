@@ -29,7 +29,7 @@ class VCU{
     static StateMachine GeneralStateMachine;
     static StateMachine OperationalStateMachine;
 
-    Communications::Ethernet ethernet;
+    Communications::Ethernet *ethernet;
 
 
     void initialize_state_machines();
