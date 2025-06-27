@@ -10,6 +10,8 @@ namespace Communications {
     HeapOrder* Ethernet::Set_Regulator = nullptr;
     HeapOrder* Ethernet::Enable_tapes = nullptr;
     HeapOrder* Ethernet::Disable_tapes = nullptr;
+    HeapOrder* Ethernet::Brake = nullptr;      
+    HeapOrder* Ethernet::Unbrake = nullptr;   
 
     // HeapStateOrder* Ethernet::Open_Contactors = nullptr;
     // HeapStateOrder* Ethernet::Close_Contactors = nullptr;
@@ -126,7 +128,7 @@ void Ethernet::update(){
 
 bool Ethernet::connected(){
     //igual meter lo de la blcu
-    // return Socket_PCU.is_connected() && 
+    return //Socket_PCU.is_connected() && 
     // Socket_HVSCU.is_connected() && 
     // Socket_BMSL.is_connected() && 
     // Socket_LCU.is_connected() && 
