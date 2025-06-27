@@ -7,17 +7,15 @@
 #include "ST-LIB.hpp"
 #include "VCU/VCU.hpp"
 
-
-
 int main(void) {
-#ifdef SIM_ON
-    SharedMemory::start();
-#endif
 
-    VCU vcu;
+    VCU::init();
+    STLIB::start("00:00:00:00:01:03","192.168.1.3");
+    VCU::start();
 
     while (1) {
-        vcu.update();
+        STLIB::update();
+        VCU::update();
     }
 }
 
