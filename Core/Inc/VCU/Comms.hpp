@@ -1,8 +1,17 @@
 #pragma once
 #include "ST-LIB.hpp"
+#include "VCU/Actuators.hpp"
+#include "VCU/Brakes.hpp"
+#include "VCU/Comms.hpp"
+#include "VCU/Leds.hpp"
 
 class Comms {
    public:
+
+    static inline Leds* leds;
+    static inline Actuators* actuators;
+    static inline Brakes* brakes;
+
     // -----------------Enums-----------------
     enum class Orders_id : uint16_t {
         // IDs inventadas excepto las de id con 200
@@ -153,6 +162,7 @@ class Comms {
 
     // -----------------Functions-----------------
     static void init();
+    static void start();
     static void add_packets();
     static void add_orders();
 

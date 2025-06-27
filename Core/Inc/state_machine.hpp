@@ -1,9 +1,6 @@
 #pragma once
 #include "ST-LIB.hpp"
-#include "VCU/Actuators.hpp"
-#include "VCU/Brakes.hpp"
 #include "VCU/Comms.hpp"
-#include "VCU/Leds.hpp"
 
 using namespace std::chrono_literals;
 
@@ -25,10 +22,6 @@ class VCU_SM {
     StateMachine GeneralStateMachine;
     StateMachine OperationalStateMachine;
 
-    Leds leds;
-    Actuators actuators;
-    Brakes brakes;
-
     VCU_SM() {
         GeneralStateMachine = StateMachine(GeneralStates::Connecting);
         GeneralStateMachine.add_state(GeneralStates::Operational);
@@ -49,35 +42,35 @@ class VCU_SM {
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
-                return ((brakes.All_reeds && brakes.Active_brakes) &&
-                        (!brakes.breaks_first_time));
+                return ((Comms::brakes->All_reeds && Comms::brakes->Active_brakes) &&
+                        (!Comms::brakes->breaks_first_time));
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault, [&]() {
-                return ((brakes.All_reeds && brakes.Active_brakes) &&
-                        (!brakes.breaks_first_time));
+                return ((Comms::brakes->All_reeds && Comms::brakes->Active_brakes) &&
+                        (!Comms::brakes->breaks_first_time));
             });
 
         GeneralStateMachine.add_transition(GeneralStates::Operational,
                                            GeneralStates::Fault,
-                                           [&]() { return (!actuators.Sdc); });
+                                           [&]() { return (!Comms::actuators->Sdc); });
 
         GeneralStateMachine.add_transition(GeneralStates::Connecting,
                                            GeneralStates::Fault,
-                                           [&]() { return (!actuators.Sdc); });
+                                           [&]() { return (!Comms::actuators->Sdc); });
 
-        GeneralStateMachine.add_enter_action([&]() { leds.leds_connecting(); },
+        GeneralStateMachine.add_enter_action([&]() { Comms::leds->leds_connecting(); },
                                              GeneralStates::Connecting);
 
-        GeneralStateMachine.add_enter_action([&]() { leds.leds_operational(); },
+        GeneralStateMachine.add_enter_action([&]() { Comms::leds->leds_operational(); },
                                              GeneralStates::Operational);
 
         GeneralStateMachine.add_enter_action(
             [&]() {
-                leds.leds_fault();
+                Comms::leds->leds_fault();
                 HAL_Delay(100);
-                brakes.brake();
+                Comms::brakes->brake();
             },
             GeneralStates::Fault);
 
@@ -97,11 +90,11 @@ class VCU_SM {
 
         OperationalStateMachine.add_transition(
             OperationalStates::Ready, OperationalStates::Energyzed,
-            [&]() { return brakes.Active_brakes; });
+            [&]() { return Comms::brakes->Active_brakes; });
 
         OperationalStateMachine.add_transition(
             OperationalStates::Energyzed, OperationalStates::Ready,
-            [&]() { return (!brakes.Active_brakes); });
+            [&]() { return (!Comms::brakes->Active_brakes); });
 
         /* OperationalStateMachine.add_enter_action(
             [&]() { ethernet->requested_close_contactors = false; },
