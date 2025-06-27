@@ -48,7 +48,7 @@ namespace Actuators {
         PinState flow1;
         PinState flow2; 
 
-        PinState Sdc;
+        PinState Sdc = PinState::ON;
 
         float pressure_1 = 0;
         float pressure_2 = 0;

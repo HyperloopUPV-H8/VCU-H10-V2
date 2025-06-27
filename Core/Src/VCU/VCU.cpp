@@ -37,18 +37,18 @@ VCU::VCU()
     , ethernet(&GeneralStateMachine, &OperationalStateMachine, &Actuators, &Brakes)
 {
     initialize_state_machines();
-    ethernet.initialize_state_orders();
+    // ethernet.initialize_state_orders();
     STLIB::start(ethernet.local_mac,ethernet.VCU_IP, "255.255.0.0","192.168.1.1",UART::uart2);
-    Actuators.init();
-    Brakes.init();
+    // Actuators.init();
+    // Brakes.init();
 
-    Time::register_low_precision_alarm(16, [&]() {
-        Brakes.read_reeds();
-        Actuators.read_regulators();
-        Actuators.read_pressure();
-        Actuators.read_flow();
-        Actuators.read_sdc();
-    });
+    // Time::register_low_precision_alarm(16, [&]() {
+    //     Brakes.read_reeds();
+    //     Actuators.read_regulators();
+    //     Actuators.read_pressure();
+    //     Actuators.read_flow();
+    //     Actuators.read_sdc();
+    // });
         
 }
 
@@ -69,29 +69,29 @@ void VCU::initialize_state_machines(){
         return ethernet.connected();
     });
 
-    GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        return !ethernet.connected();
-    });
+    // GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
+    //     return !ethernet.connected();
+    // });
 
-    GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        return !ethernet.connected(); // y algo mas para que no se vaya a fault al principio
-    });
+    // GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
+    //     return !ethernet.connected(); // y algo mas para que no se vaya a fault al principio
+    // });
 
-    GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        return ((Brakes.All_reeds&& Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
-    });
+    // GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
+    //     return ((Brakes.All_reeds&& Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
+    // });
 
-    GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        return ((Brakes.All_reeds && Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
-    });
+    // GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
+    //     return ((Brakes.All_reeds && Brakes.Active_brakes )&& (!Brakes.breaks_first_time));
+    // });
 
-    GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
-        return (!Actuators.Sdc);
-    });
+    // GeneralStateMachine.add_transition(GeneralStates::Operational, GeneralStates::Fault, [&](){
+    //     return (!Actuators.Sdc);
+    // });
 
-    GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
-        return (!Actuators.Sdc);
-    });
+    // GeneralStateMachine.add_transition(GeneralStates::Connecting, GeneralStates::Fault, [&](){
+    //     return (!Actuators.Sdc);
+    // });
 
     GeneralStateMachine.add_enter_action([&](){
         leds.leds_connecting();
@@ -156,7 +156,11 @@ void VCU::initialize_state_machines(){
 
 void VCU::update(){
     STLIB::update();
-    ethernet.update();
+    GeneralStateMachine.check_transitions();
+    OperationalStateMachine.check_transitions();
+    GeneralStateMachine.refresh_state_orders();
+    OperationalStateMachine.refresh_state_orders();
+    // ethernet.update();
 
 }
 

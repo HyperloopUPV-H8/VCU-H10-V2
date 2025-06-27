@@ -115,15 +115,15 @@ class Ethernet{
     // inline static const uint16_t blcu_udp_port{50406};
 
 
-    Socket Socket_PCU;
-    Socket Socket_HVSCU;
-    Socket Socket_BMSL;
-    Socket Socket_LCU;
-    Socket Socket_BLCU;
+    // Socket Socket_PCU;
+    // Socket Socket_HVSCU;
+    // Socket Socket_BMSL;
+    // Socket Socket_LCU;
+    // Socket Socket_BLCU;
 
     ServerSocket Control_station;
 
-    DatagramSocket packets_endpoint;
+    // DatagramSocket packets_endpoint;
     // DatagramSocket PCU_UDP;
     // DatagramSocket HVSU_UDP;
     // DatagramSocket BMSL_UDP;
@@ -151,22 +151,24 @@ class Ethernet{
     static HeapOrder* Set_Regulator;
     static HeapOrder* Enable_tapes;
     static HeapOrder* Disable_tapes;
+    static HeapOrder* Brake;
+    static HeapOrder* Unbrake;
 
-    //State orders: 
-    static HeapStateOrder* Open_Contactors;
-    static HeapStateOrder* Close_Contactors;
-    static HeapStateOrder* Unbrake;
-    static HeapStateOrder* Brake;
-    static HeapStateOrder* EndOfRun;
+    // //State orders: 
+    // static HeapStateOrder* Open_Contactors;
+    // static HeapStateOrder* Close_Contactors;
+    // static HeapStateOrder* Unbrake;
+    // static HeapStateOrder* Brake;
+    // static HeapStateOrder* EndOfRun;
 
-    static HeapStateOrder* Levitation_Active;
-    static HeapStateOrder* Propulsion_Active;
-    static HeapStateOrder* Charging_LV_Battery;
-    static HeapStateOrder* Enable_Booster;
-    static HeapStateOrder* Levitation_Inactive;
-    static HeapStateOrder* Propulsion_Inactive;
-    static HeapStateOrder* Charging_LV_Battery_Inactive;
-    static HeapStateOrder* Disable_booster;
+    // static HeapStateOrder* Levitation_Active;
+    // static HeapStateOrder* Propulsion_Active;
+    // static HeapStateOrder* Charging_LV_Battery;
+    // static HeapStateOrder* Enable_Booster;
+    // static HeapStateOrder* Levitation_Inactive;
+    // static HeapStateOrder* Propulsion_Inactive;
+    // static HeapStateOrder* Charging_LV_Battery_Inactive;
+    // static HeapStateOrder* Disable_booster;
 
     
     static void on_brake(){
@@ -208,17 +210,17 @@ class Ethernet{
         Brakes->Tape_enabled = false;
         Brakes->Tape_output.turn_off();
     }
-    //Funciones de las flags, y las que se mandan a otras placas, cambiar y tal al gusto:
-    static void on_open_contactors(){recieve_order(Boards::HVSCU, Open_Contactors, Orders_id::Open_contactors);}
-    static void on_close_contactors(){recieve_order(Boards::HVSCU, Close_Contactors, Orders_id::Close_contactors);}
-    static void on_levitation_active() { recieve_order(Boards::LCU, Levitation_Active, Orders_id::Levitation_active); }//No hace falta mandar la placa
-    static void on_propulsion_active() { recieve_order(Boards::PCU, Propulsion_Active, Orders_id::Propulsion_active); }
-    static void on_charging_LV_battery() { recieve_order(Boards::BMSL, Charging_LV_Battery, Orders_id::Charging_LV_battery); }
-    static void on_enable_booster() { recieve_order(Boards::BCU, Enable_Booster, Orders_id::Enable_booster); }
-    static void on_levitation_inactive() { recieve_order(Boards::LCU, Levitation_Inactive, Orders_id::Levitation_inactive); }
-    static void on_propulsion_inactive() { recieve_order(Boards::PCU, Propulsion_Inactive, Orders_id::Propulsion_inactive); }
-    static void on_charging_LV_battery_inactive() { recieve_order(Boards::BMSL, Charging_LV_Battery_Inactive, Orders_id::Charging_LV_battery_inactive); }
-    static void on_disable_booster() { recieve_order(Boards::BCU, Disable_booster, Orders_id::Disable_booster); }
+    // //Funciones de las flags, y las que se mandan a otras placas, cambiar y tal al gusto:
+    // static void on_open_contactors(){recieve_order(Boards::HVSCU, Open_Contactors, Orders_id::Open_contactors);}
+    // static void on_close_contactors(){recieve_order(Boards::HVSCU, Close_Contactors, Orders_id::Close_contactors);}
+    // static void on_levitation_active() { recieve_order(Boards::LCU, Levitation_Active, Orders_id::Levitation_active); }//No hace falta mandar la placa
+    // static void on_propulsion_active() { recieve_order(Boards::PCU, Propulsion_Active, Orders_id::Propulsion_active); }
+    // static void on_charging_LV_battery() { recieve_order(Boards::BMSL, Charging_LV_Battery, Orders_id::Charging_LV_battery); }
+    // static void on_enable_booster() { recieve_order(Boards::BCU, Enable_Booster, Orders_id::Enable_booster); }
+    // static void on_levitation_inactive() { recieve_order(Boards::LCU, Levitation_Inactive, Orders_id::Levitation_inactive); }
+    // static void on_propulsion_inactive() { recieve_order(Boards::PCU, Propulsion_Inactive, Orders_id::Propulsion_inactive); }
+    // static void on_charging_LV_battery_inactive() { recieve_order(Boards::BMSL, Charging_LV_Battery_Inactive, Orders_id::Charging_LV_battery_inactive); }
+    // static void on_disable_booster() { recieve_order(Boards::BCU, Disable_booster, Orders_id::Disable_booster); }
     
 
     inline static std::unordered_map<Boards, Socket*> Socket_to_board{};
@@ -258,28 +260,28 @@ class Ethernet{
         // {Orders_id::Unbrake, {&requested_unbrake, true}}
         // {Orders_id::EndOfRun_id, {&requested_end_of_run, true}}
     };
-    inline static std::unordered_map<Orders_id, BoardOrder> id_to_orders{
-        {Orders_id::Levitation_active, {Boards::LCU, Levitation_Active}},
-        {Orders_id::Propulsion_active, {Boards::PCU, Propulsion_Active}},
-        {Orders_id::Charging_LV_battery, {Boards::BMSL, Charging_LV_Battery}},
-        {Orders_id::Enable_booster, {Boards::BCU, Enable_Booster}},
-        {Orders_id::Open_contactors, {Boards::HVSCU, Open_Contactors}},
-        // {Orders_id::Brake, {Boards::, Brake}},
-        {Orders_id::Close_contactors, {Boards::HVSCU, Close_Contactors}},
-        // {Orders_id::Unbrake, {Boards::PCU, Unbrake}},
-        {Orders_id::Levitation_inactive, {Boards::LCU, Levitation_Inactive}},
-        {Orders_id::Propulsion_inactive, {Boards::PCU, Propulsion_Inactive}},
-        {Orders_id::Charging_LV_battery_inactive, {Boards::BMSL, Charging_LV_Battery_Inactive}},
-        {Orders_id::Disable_booster, {Boards::BCU, Disable_booster}}
-    };
+    // inline static std::unordered_map<Orders_id, BoardOrder> id_to_orders{
+    //     {Orders_id::Levitation_active, {Boards::LCU, Levitation_Active}},
+    //     {Orders_id::Propulsion_active, {Boards::PCU, Propulsion_Active}},
+    //     {Orders_id::Charging_LV_battery, {Boards::BMSL, Charging_LV_Battery}},
+    //     {Orders_id::Enable_booster, {Boards::BCU, Enable_Booster}},
+    //     {Orders_id::Open_contactors, {Boards::HVSCU, Open_Contactors}},
+    //     // {Orders_id::Brake, {Boards::, Brake}},
+    //     {Orders_id::Close_contactors, {Boards::HVSCU, Close_Contactors}},
+    //     // {Orders_id::Unbrake, {Boards::PCU, Unbrake}},
+    //     {Orders_id::Levitation_inactive, {Boards::LCU, Levitation_Inactive}},
+    //     {Orders_id::Propulsion_inactive, {Boards::PCU, Propulsion_Inactive}},
+    //     {Orders_id::Charging_LV_battery_inactive, {Boards::BMSL, Charging_LV_Battery_Inactive}},
+    //     {Orders_id::Disable_booster, {Boards::BCU, Disable_booster}}
+    // };
     inline static std::unordered_map<Orders_id, uint8_t> id_to_timeout{};
 
-    HeapPacket* Reeds = nullptr;
-    HeapPacket* flow = nullptr;
-    HeapPacket* Regulator = nullptr;
-    HeapPacket* Pressure = nullptr;
+    // HeapPacket* Reeds = nullptr;
+    // HeapPacket* flow = nullptr;
+    // HeapPacket* Regulator = nullptr;
+    // HeapPacket* Pressure = nullptr;
     // HeapPacket* Tapes = nullptr;
-    HeapPacket* Tapes_enable = nullptr;
+    // HeapPacket* Tapes_enable = nullptr;
 
     // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
     // struct OrderTriggers{
