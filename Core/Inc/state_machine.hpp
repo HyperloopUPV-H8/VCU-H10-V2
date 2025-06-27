@@ -1,9 +1,9 @@
 #pragma once
-#include "VCU/Comms.hpp"
+#include "ST-LIB.hpp"
 #include "VCU/Actuators.hpp"
 #include "VCU/Brakes.hpp"
+#include "VCU/Comms.hpp"
 #include "VCU/Leds.hpp"
-#include "ST-LIB.hpp"
 
 using namespace std::chrono_literals;
 
@@ -47,31 +47,25 @@ class VCU_SM {
             GeneralStates::Operational, GeneralStates::Fault,
             [&]() { return !Comms::control_station_tcp->is_connected(); });
 
-        /* GeneralStateMachine.add_transition(
-            GeneralStates::Connecting, GeneralStates::Fault, [&]() {
-                return !ethernet->connected();  // y algo mas para que no se
-                                                // vaya a fault al principio
-            });
-
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
-                return ((Brakes.All_reeds && Brakes.Active_brakes) &&
-                        (!Brakes.breaks_first_time));
+                return ((brakes.All_reeds && brakes.Active_brakes) &&
+                        (!brakes.breaks_first_time));
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault, [&]() {
-                return ((Brakes.All_reeds && Brakes.Active_brakes) &&
-                        (!Brakes.breaks_first_time));
+                return ((brakes.All_reeds && brakes.Active_brakes) &&
+                        (!brakes.breaks_first_time));
             });
 
         GeneralStateMachine.add_transition(GeneralStates::Operational,
                                            GeneralStates::Fault,
-                                           [&]() { return (!Actuators.Sdc); });
+                                           [&]() { return (!actuators.Sdc); });
 
         GeneralStateMachine.add_transition(GeneralStates::Connecting,
                                            GeneralStates::Fault,
-                                           [&]() { return (!Actuators.Sdc); });
+                                           [&]() { return (!actuators.Sdc); });
 
         GeneralStateMachine.add_enter_action([&]() { leds.leds_connecting(); },
                                              GeneralStates::Connecting);
@@ -83,13 +77,13 @@ class VCU_SM {
             [&]() {
                 leds.leds_fault();
                 HAL_Delay(100);
-                Brakes.brake();
+                brakes.brake();
             },
             GeneralStates::Fault);
 
         // el sdc tambien manda a fault?
 
-        OperationalStateMachine.add_transition(
+        /* OperationalStateMachine.add_transition(
             OperationalStates::Idle, OperationalStates::Energyzed,
             [&]() { return ethernet->requested_close_contactors; });
 
@@ -98,19 +92,18 @@ class VCU_SM {
             [&]() { return ethernet->requested_end_of_run; });
 
         OperationalStateMachine.add_transition(
-            OperationalStates::Energyzed, OperationalStates::Idle, [&]() {
-                return ethernet->requested_open_contactors;
-            });
+            OperationalStates::Energyzed, OperationalStates::Idle,
+            [&]() { return ethernet->requested_open_contactors; }); */
 
         OperationalStateMachine.add_transition(
             OperationalStates::Ready, OperationalStates::Energyzed,
-            [&]() { return Brakes.Active_brakes; });
+            [&]() { return brakes.Active_brakes; });
 
         OperationalStateMachine.add_transition(
             OperationalStates::Energyzed, OperationalStates::Ready,
-            [&]() { return (!Brakes.Active_brakes); });
+            [&]() { return (!brakes.Active_brakes); });
 
-        OperationalStateMachine.add_enter_action(
+        /* OperationalStateMachine.add_enter_action(
             [&]() { ethernet->requested_close_contactors = false; },
             OperationalStates::Energyzed);
 
@@ -120,11 +113,8 @@ class VCU_SM {
 
         OperationalStateMachine.add_enter_action(
             [&]() { ethernet->requested_open_contactors = false; },
-            OperationalStates::Idle);
+            OperationalStates::Idle); */
 
-        ProtectionManager::link_state_machine(GeneralStateMachine,
-                                              GeneralStates::Fault);
-        ProtectionManager::add_standard_protections();
-        // ethernet->initialize_state_orders(); */
+        // ethernet->initialize_state_orders();
     }
 };
