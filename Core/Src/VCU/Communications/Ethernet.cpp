@@ -13,6 +13,7 @@ namespace Communications {
     HeapOrder* Ethernet::Brake = nullptr;      
     HeapOrder* Ethernet::Unbrake = nullptr;   
 
+
     // HeapStateOrder* Ethernet::Open_Contactors = nullptr;
     // HeapStateOrder* Ethernet::Close_Contactors = nullptr;
     // HeapStateOrder* Ethernet::Unbrake = nullptr;
@@ -60,12 +61,12 @@ Ethernet::Ethernet(StateMachine* GeneralStateMachine, StateMachine* OperationalS
     Brake = new HeapOrder(Orders_id::Brake, &on_brake);
     Unbrake = new HeapOrder(Orders_id::Unbrake, &on_unbrake);
 
-    // Reeds = new HeapPacket(Packets_id::Reeds, &brakes->reed1, &brakes->reed2, &brakes->reed3, &brakes->reed4, &brakes->reed5, &brakes->reed6, &brakes->reed7, &brakes->reed8,&brakes->All_reeds);
-    // flow = new HeapPacket(Packets_id::Flow, &actuators->flow1, &actuators->flow2);
-    // Regulator = new HeapPacket(Packets_id::Regulator, &actuators->regulator_1_input, &actuators->regulator_2_input);
-    // Pressure = new HeapPacket(Packets_id::Pressure, &actuators->pressure_1, &actuators->pressure_2, &actuators->pressure_3, &actuators->pressure_4);
-    // // Tapes = new HeapPacket(1354, &brakes->Tape_state);
-    // Tapes_enable = new HeapPacket(Packets_id::Tapes_enable, &brakes->Tape_enabled);
+    Reeds = new HeapPacket(Packets_id::Reeds, &brakes->reed1, &brakes->reed2, &brakes->reed3, &brakes->reed4, &brakes->reed5, &brakes->reed6, &brakes->reed7, &brakes->reed8,&brakes->All_reeds);
+    flow = new HeapPacket(Packets_id::Flow, &actuators->flow1, &actuators->flow2);
+    Regulator = new HeapPacket(Packets_id::Regulator, &actuators->regulator_1_input, &actuators->regulator_2_input);
+    Pressure = new HeapPacket(Packets_id::Pressure, &actuators->pressure_1, &actuators->pressure_2, &actuators->pressure_3, &actuators->pressure_4);
+    Tapes = new HeapPacket(1354, &brakes->Tape_state);
+    Tapes_enable = new HeapPacket(Packets_id::Tapes_enable, &brakes->Tape_enabled);
 
     // Time::register_low_precision_alarm(16, [&]() {
     //     packets_endpoint.send_packet(*Reeds);

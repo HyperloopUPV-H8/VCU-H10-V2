@@ -276,12 +276,12 @@ class Ethernet{
     // };
     inline static std::unordered_map<Orders_id, uint8_t> id_to_timeout{};
 
-    // HeapPacket* Reeds = nullptr;
-    // HeapPacket* flow = nullptr;
-    // HeapPacket* Regulator = nullptr;
-    // HeapPacket* Pressure = nullptr;
-    // HeapPacket* Tapes = nullptr;
-    // HeapPacket* Tapes_enable = nullptr;
+    HeapPacket* Reeds = nullptr;
+    HeapPacket* flow = nullptr;
+    HeapPacket* Regulator = nullptr;
+    HeapPacket* Pressure = nullptr;
+    HeapPacket* Tapes = nullptr;
+    HeapPacket* Tapes_enable = nullptr;
 
     // static std::vector<HeapPacket*> packets{}; //Lo que mando a la gui
     // struct OrderTriggers{
