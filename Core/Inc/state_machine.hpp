@@ -42,29 +42,33 @@ class VCU_SM {
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
-                return ((Comms::brakes->All_reeds && Comms::brakes->Active_brakes) &&
+                return ((Comms::brakes->All_reeds &&
+                         Comms::brakes->Active_brakes) &&
                         (!Comms::brakes->breaks_first_time));
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault, [&]() {
-                return ((Comms::brakes->All_reeds && Comms::brakes->Active_brakes) &&
+                return ((Comms::brakes->All_reeds &&
+                         Comms::brakes->Active_brakes) &&
                         (!Comms::brakes->breaks_first_time));
             });
 
-        GeneralStateMachine.add_transition(GeneralStates::Operational,
-                                           GeneralStates::Fault,
-                                           [&]() { return (!Comms::actuators->Sdc); });
+        GeneralStateMachine.add_transition(
+            GeneralStates::Operational, GeneralStates::Fault,
+            [&]() { return (!Comms::actuators->Sdc); });
 
-        GeneralStateMachine.add_transition(GeneralStates::Connecting,
-                                           GeneralStates::Fault,
-                                           [&]() { return (!Comms::actuators->Sdc); });
+        GeneralStateMachine.add_transition(
+            GeneralStates::Connecting, GeneralStates::Fault,
+            [&]() { return (!Comms::actuators->Sdc); });
 
-        GeneralStateMachine.add_enter_action([&]() { Comms::leds->leds_connecting(); },
-                                             GeneralStates::Connecting);
+        GeneralStateMachine.add_enter_action(
+            [&]() { Comms::leds->leds_connecting(); },
+            GeneralStates::Connecting);
 
-        GeneralStateMachine.add_enter_action([&]() { Comms::leds->leds_operational(); },
-                                             GeneralStates::Operational);
+        GeneralStateMachine.add_enter_action(
+            [&]() { Comms::leds->leds_operational(); },
+            GeneralStates::Operational);
 
         GeneralStateMachine.add_enter_action(
             [&]() {
@@ -109,5 +113,15 @@ class VCU_SM {
             OperationalStates::Idle); */
 
         // ethernet->initialize_state_orders();
+
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() { Comms::packet_sending = true; }, 100ms,
+            GeneralStates::Connecting);
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() { Comms::packet_sending = true; }, 100ms,
+            GeneralStates::Operational);
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() { Comms::packet_sending = true; }, 100ms,
+            GeneralStates::Fault);
     }
 };

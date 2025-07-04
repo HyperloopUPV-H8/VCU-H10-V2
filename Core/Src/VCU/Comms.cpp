@@ -1,4 +1,5 @@
 #include "VCU/Comms.hpp"
+#include "VCU/VCU.hpp"
 
 void Comms::on_potencia_refri() {
     if (actuators->selected_pump == Actuators::Pump::PUMP_UNIDADES) {
@@ -24,10 +25,17 @@ void Comms::start() {
     add_orders();
 }
 
-void Comms::add_packets() {}
+void Comms::add_packets() {
+    states = new HeapPacket(static_cast<uint16_t>(Packets_id::States),
+                            VCU::general_state, VCU::operational_state);
+}
 
 void Comms::add_orders() {
     Potencia_refri = new HeapOrder(
         static_cast<uint16_t>(Orders_id::Potencia_refri_id), &on_potencia_refri,
         &actuators->selected_pump_duty, &actuators->selected_pump);
+}
+
+void Comms::send_packets(){
+    control_station_udp->send_packet(*states);
 }

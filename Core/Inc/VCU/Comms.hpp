@@ -35,6 +35,7 @@ class Comms {
     };
 
     enum class Packets_id : uint16_t {
+        States = 249,
         Flow = 250,
         Reeds = 251,
         Regulator = 252,
@@ -74,6 +75,7 @@ class Comms {
     static inline bool requested_open_contactors{};
     static inline bool requested_close_contactors{};
     static inline bool requested_end_of_run{};
+    static inline bool packet_sending{};
 
     // -----------------IP's/Ports-----------------
     static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";
@@ -124,6 +126,7 @@ class Comms {
     static inline DatagramSocket blcu_udp{};
 
     // -----------------Packets-----------------
+    static inline HeapPacket* states{};
     static inline HeapPacket* Reeds{};
     static inline HeapPacket* flow{};
     static inline HeapPacket* Regulator{};
@@ -165,6 +168,7 @@ class Comms {
     static void start();
     static void add_packets();
     static void add_orders();
+    static void send_packets();
 
     void update();
     bool connected();

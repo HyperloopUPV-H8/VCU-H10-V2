@@ -2,7 +2,8 @@
 
 void VCU::init(){
     state_machine = new VCU_SM();
-    VCU_state = &state_machine->GeneralStateMachine.current_state;
+    general_state = &state_machine->GeneralStateMachine.current_state;
+    operational_state = &state_machine->OperationalStateMachine.current_state;
 
     ProtectionManager::add_standard_protections();
     ProtectionManager::initialize();
@@ -22,7 +23,15 @@ void VCU::start(){
     Comms::start();
 }
 
+void VCU::send_packets(){
+    if(Comms::packet_sending){
+        Comms::send_packets();
+        Comms::packet_sending = false;
+    }
+}
+
 void VCU::update(){
     state_machine->GeneralStateMachine.check_transitions();
+    send_packets();
     ProtectionManager::check_protections();
 }
