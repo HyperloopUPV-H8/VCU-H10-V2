@@ -17,6 +17,8 @@ class Brakes {
 
     // DigitalSensor Tape_input;
 
+    DigitalSensor tape_emergency_input;
+
    public:
     bool Active_brakes = true;
     bool breaks_first_time = true;
@@ -32,10 +34,10 @@ class Brakes {
 
     bool All_reeds = false;
 
-    bool Tape_enabled = true;
+    PinState tape_emergency = PinState::ON;
     DigitalOutput Tape_output;
 
-    PinState Tape_state = PinState::OFF;
+    PinState Tape_status = PinState::OFF;
     
     Brakes();
 
@@ -43,4 +45,5 @@ class Brakes {
     void brake();
     void unbrake();
     void read_reeds();
+    void read_tape_emergency();
 };

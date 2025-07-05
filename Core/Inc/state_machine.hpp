@@ -12,12 +12,7 @@ class VCU_SM {
         Fault,
     };
 
-    enum OperationalStates {
-        Idle,
-        EndOfRun,
-        Energyzed,
-        Ready,
-    };
+    enum OperationalStates { Idle, EndOfRun, Energyzed, Ready, Demonstration };
 
     StateMachine GeneralStateMachine;
     StateMachine OperationalStateMachine;
@@ -62,6 +57,13 @@ class VCU_SM {
             GeneralStates::Connecting, GeneralStates::Fault,
             [&]() { return (!Comms::actuators->Sdc); });
 
+        GeneralStateMachine.add_transition(
+            GeneralStates::Operational, GeneralStates::Fault, [&]() {
+                bool emergency_tape =
+                    static_cast<bool>(Comms::brakes->tape_emergency);
+                return !emergency_tape;
+            });
+
         GeneralStateMachine.add_enter_action(
             [&]() { Comms::leds->leds_connecting(); },
             GeneralStates::Connecting);
@@ -73,8 +75,7 @@ class VCU_SM {
         GeneralStateMachine.add_enter_action(
             [&]() {
                 Comms::leds->leds_fault();
-                HAL_Delay(100);
-                Comms::brakes->brake();
+                Time::set_timeout(100, [&]() { Comms::brakes->brake(); });
             },
             GeneralStates::Fault);
 
@@ -113,6 +114,8 @@ class VCU_SM {
             OperationalStates::Idle); */
 
         // ethernet->initialize_state_orders();
+
+        //-----------------CYCLYC ACTIONS-----------------------
 
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() { Comms::packet_sending = true; }, 100ms,

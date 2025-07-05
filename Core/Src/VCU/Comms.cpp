@@ -25,12 +25,12 @@ void Comms::on_Set_regulator() {
 }
 
 void Comms::on_Enable_tapes() {
-    brakes->Tape_enabled = true;
+    brakes->Tape_status = PinState::ON;
     brakes->Tape_output.turn_on();
 }
 
 void Comms::on_Disable_tapes() {
-    brakes->Tape_enabled = false;
+    brakes->Tape_status = PinState::OFF;
     brakes->Tape_output.turn_off();
 }
 
@@ -70,7 +70,7 @@ void Comms::add_packets() {
                               &actuators->pressure_1, &actuators->pressure_2,
                               &actuators->pressure_3, &actuators->pressure_4);
     tapes_enabled = new HeapPacket(
-        static_cast<uint16_t>(Packets_id::Tapes_enable), &brakes->Tape_enabled);
+        static_cast<uint16_t>(Packets_id::Tapes_enable), &brakes->Tape_status);
 }
 
 void Comms::add_orders() {
@@ -116,4 +116,5 @@ void Comms::update(){
     actuators->read_flow();
     actuators->read_sdc();
     brakes->read_reeds();
+    brakes->read_tape_emergency();
 }

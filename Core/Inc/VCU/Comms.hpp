@@ -51,12 +51,14 @@ class Comms {
         bool requested_levitation_active;
         bool requested_propulsion_active;
         bool requested_charging_LV_battery;
+        bool requested_horizontal_levitation_active;
         bool requested_enable_booster;
 
         Flags_ready()
             : requested_levitation_active(false),
               requested_propulsion_active(false),
               requested_charging_LV_battery(false),
+              requested_horizontal_levitation_active(false),
               requested_enable_booster(false) {}
     };
 
@@ -177,7 +179,6 @@ class Comms {
 
     static void on_brake();
     static void on_unbrake();
-    static void on_end_of_run();
     static void on_potencia_refri();
     static void on_Set_regulator();
     static void on_Enable_tapes();
@@ -185,16 +186,22 @@ class Comms {
 
     // Funciones de las flags, y las que se mandan a otras placas, cambiar y tal
     // al gusto:
-    static void on_open_contactors();
-    static void on_close_contactors();
     static void on_levitation_active();
     static void on_propulsion_active();
     static void on_charging_LV_battery();
+    static void on_horizontal_levitation_active();
     static void on_enable_booster();
+
     static void on_levitation_inactive();
     static void on_propulsion_inactive();
     static void on_charging_LV_battery_inactive();
+    static void on_horizontal_levitation_inactive();
     static void on_disable_booster();
+
+    static void on_open_contactors();
+    static void on_close_contactors();
+
+    static void on_end_of_run();
 
     // -----------------Unordered maps-----------------
     static inline std::unordered_map<Boards, Socket*> Socket_to_board{};

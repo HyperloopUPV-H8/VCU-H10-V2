@@ -14,7 +14,9 @@ Brakes::Brakes(){
     reed8_input = DigitalSensor(REED8_PIN, &reed8);
 
     // Tape_input = DigitalSensor(TAPE_INPUT_PIN, &Tape_state);
-    Tape_output = DigitalOutput(TAPE_PIN);
+    Tape_output = DigitalOutput(TAPE_E_PIN);
+
+    tape_emergency_input = DigitalSensor(TAPE_PIN, &tape_emergency);
 }
 
 void Brakes::init(){
@@ -54,4 +56,8 @@ void Brakes::read_reeds() {
                 reed6 &&
                 reed7 &&
                 reed8;
+}
+
+void Brakes::read_tape_emergency() {
+    tape_emergency_input.read();
 }
