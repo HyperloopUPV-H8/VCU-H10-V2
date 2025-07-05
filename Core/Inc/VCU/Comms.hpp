@@ -76,6 +76,7 @@ class Comms {
     static inline bool requested_close_contactors{};
     static inline bool requested_end_of_run{};
     static inline bool packet_sending{};
+    static inline bool reading_sensors{};
 
     // -----------------IP's/Ports-----------------
     static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";
@@ -127,12 +128,12 @@ class Comms {
 
     // -----------------Packets-----------------
     static inline HeapPacket* states{};
-    static inline HeapPacket* Reeds{};
+    static inline HeapPacket* reeds{};
     static inline HeapPacket* flow{};
-    static inline HeapPacket* Regulator{};
-    static inline HeapPacket* Pressure{};
+    static inline HeapPacket* regulator{};
+    static inline HeapPacket* pressure{};
     // static inline HeapPacket* Tapes{};
-    static inline HeapPacket* Tapes_enable{};
+    static inline HeapPacket* tapes_enabled{};
 
     /* static std::vector<HeapPacket*> packets{};  // Lo que mando a la gui
     struct OrderTriggers {
@@ -167,11 +168,12 @@ class Comms {
     static void init();
     static void start();
     static void add_packets();
-    static void add_orders();
     static void send_packets();
+    static void add_orders();
+    static void add_state_orders();
 
-    void update();
-    bool connected();
+    static void update();
+    static bool connected();
 
     static void on_brake();
     static void on_unbrake();

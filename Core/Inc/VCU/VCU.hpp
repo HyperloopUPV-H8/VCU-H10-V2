@@ -4,6 +4,7 @@
 
 class VCU {
     static void send_packets();
+    static void read_sensors();
 
    public:
     static inline VCU_SM* state_machine{};

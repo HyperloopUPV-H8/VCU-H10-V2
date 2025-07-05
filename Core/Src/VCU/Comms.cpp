@@ -1,4 +1,5 @@
 #include "VCU/Comms.hpp"
+
 #include "VCU/VCU.hpp"
 
 void Comms::on_potencia_refri() {
@@ -8,6 +9,34 @@ void Comms::on_potencia_refri() {
         actuators->set_pump_2(actuators->selected_pump_duty);
     }
 }
+
+void Comms::on_Set_regulator() {
+    if (actuators->selected_regulator_pressure > 6) {
+        actuators->selected_regulator_pressure = 6;
+        // InfoWarning::InfoWarningTrigger("Cannot exceed 6 bar on regulator
+        // pressure");
+    }
+    if (actuators->selected_regulator == Actuators::Regulator::REGULATOR_1) {
+        actuators->set_regulator_1(actuators->selected_regulator_pressure);
+    } else if (actuators->selected_regulator ==
+               Actuators::Regulator::REGULATOR_2) {
+        actuators->set_regulator_2(actuators->selected_regulator_pressure);
+    }
+}
+
+void Comms::on_Enable_tapes() {
+    brakes->Tape_enabled = true;
+    brakes->Tape_output.turn_on();
+}
+
+void Comms::on_Disable_tapes() {
+    brakes->Tape_enabled = false;
+    brakes->Tape_output.turn_off();
+}
+
+void Comms::on_brake() { brakes->brake(); }
+
+void Comms::on_unbrake() { brakes->unbrake(); }
 
 void Comms::init() {
     leds = new Leds();
@@ -28,14 +57,63 @@ void Comms::start() {
 void Comms::add_packets() {
     states = new HeapPacket(static_cast<uint16_t>(Packets_id::States),
                             VCU::general_state, VCU::operational_state);
+    reeds = new HeapPacket(static_cast<uint16_t>(Packets_id::Reeds),
+                           &brakes->reed1, &brakes->reed2, &brakes->reed3,
+                           &brakes->reed4, &brakes->reed5, &brakes->reed6,
+                           &brakes->reed7, &brakes->reed8, &brakes->All_reeds);
+    flow = new HeapPacket(static_cast<uint16_t>(Packets_id::Flow),
+                          &actuators->flow1, &actuators->flow2);
+    regulator = new HeapPacket(static_cast<uint16_t>(Packets_id::Regulator),
+                               &actuators->regulator_1_input,
+                               &actuators->regulator_2_input);
+    pressure = new HeapPacket(static_cast<uint16_t>(Packets_id::Pressure),
+                              &actuators->pressure_1, &actuators->pressure_2,
+                              &actuators->pressure_3, &actuators->pressure_4);
+    tapes_enabled = new HeapPacket(
+        static_cast<uint16_t>(Packets_id::Tapes_enable), &brakes->Tape_enabled);
 }
 
 void Comms::add_orders() {
     Potencia_refri = new HeapOrder(
         static_cast<uint16_t>(Orders_id::Potencia_refri_id), &on_potencia_refri,
         &actuators->selected_pump_duty, &actuators->selected_pump);
+    Set_Regulator = new HeapOrder(
+        static_cast<uint16_t>(Orders_id::Set_regulator_id), &on_Set_regulator,
+        &actuators->selected_regulator_pressure,
+        &actuators->selected_regulator);
+    Enable_tapes = new HeapOrder(
+        static_cast<uint16_t>(Orders_id::Enable_tapes_id), &on_Enable_tapes);
+    Disable_tapes = new HeapOrder(
+        static_cast<uint16_t>(Orders_id::Disable_tapes_id), &on_Disable_tapes);
+
+    add_state_orders();
 }
 
-void Comms::send_packets(){
-    control_station_udp->send_packet(*states);
+void Comms::add_state_orders() {
+    StateOrder::set_socket(*control_station_tcp);
+    Brake =
+        new HeapStateOrder(static_cast<uint16_t>(Orders_id::Brake), &on_brake,
+                           VCU::state_machine->GeneralStateMachine,
+                           VCU_SM::GeneralStates::Operational);
+    Unbrake =
+        new HeapStateOrder(static_cast<uint16_t>(Orders_id::Unbrake),
+                           &on_unbrake, VCU::state_machine->GeneralStateMachine,
+                           VCU_SM::GeneralStates::Operational);
+}
+
+void Comms::send_packets() { 
+    control_station_udp->send_packet(*states); 
+    control_station_udp->send_packet(*reeds);
+    control_station_udp->send_packet(*flow);
+    control_station_udp->send_packet(*regulator);
+    control_station_udp->send_packet(*pressure);
+    control_station_udp->send_packet(*tapes_enabled);
+}
+
+void Comms::update(){
+    actuators->read_regulators();
+    actuators->read_pressure();
+    actuators->read_flow();
+    actuators->read_sdc();
+    brakes->read_reeds();
 }

@@ -30,8 +30,16 @@ void VCU::send_packets(){
     }
 }
 
+void VCU::read_sensors(){
+    if(Comms::reading_sensors){
+        Comms::update();
+        Comms::reading_sensors = false;
+    }
+}
+
 void VCU::update(){
     state_machine->GeneralStateMachine.check_transitions();
+    read_sensors();
     send_packets();
     ProtectionManager::check_protections();
 }

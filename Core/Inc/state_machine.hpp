@@ -123,5 +123,15 @@ class VCU_SM {
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() { Comms::packet_sending = true; }, 100ms,
             GeneralStates::Fault);
+
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() { Comms::reading_sensors = true; }, 100ms,
+            GeneralStates::Connecting);
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() { Comms::reading_sensors = true; }, 100ms,
+            GeneralStates::Operational);
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() { Comms::reading_sensors = true; }, 100ms,
+            GeneralStates::Fault);
     }
 };
