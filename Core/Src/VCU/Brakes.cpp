@@ -14,14 +14,14 @@ Brakes::Brakes(){
     reed8_input = DigitalSensor(REED8_PIN, &reed8);
 
     // Tape_input = DigitalSensor(TAPE_INPUT_PIN, &Tape_state);
-    Tape_output = DigitalOutput(TAPE_E_PIN);
+    tape_enable_output = DigitalOutput(TAPE_E_PIN);
 
     tape_emergency_input = DigitalSensor(TAPE_PIN, &tape_emergency);
 }
 
 void Brakes::init(){
     Actuator_out.turn_on();
-    Tape_output.turn_on();//Hardcodeado para desabilitar tapes creo, o al reves xd
+    tape_enable_output.turn_on();//Hardcodeado para desabilitar tapes creo, o al reves xd
 }
 
 void Brakes::brake(){
@@ -29,12 +29,14 @@ void Brakes::brake(){
         breaks_first_time = false;
 
     }
-    Actuator_out.turn_on();
+    // TO DO: SET UP REGULATOR PRESSURE TO 6 bars
+
+    Actuator_out.turn_off();
     Active_brakes = true;
 }
 
 void Brakes::unbrake(){
-    Actuator_out.turn_off();
+    Actuator_out.turn_on();
     Active_brakes = false;
 }
 

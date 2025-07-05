@@ -17,21 +17,25 @@ void Comms::on_Set_regulator() {
         // pressure");
     }
     if (actuators->selected_regulator == Actuators::Regulator::REGULATOR_1) {
-        actuators->set_regulator_1(actuators->selected_regulator_pressure);
+        actuators->regulator_1_pressure =
+            actuators->selected_regulator_pressure;
+        actuators->set_regulator_1(actuators->regulator_1_pressure);
     } else if (actuators->selected_regulator ==
                Actuators::Regulator::REGULATOR_2) {
-        actuators->set_regulator_2(actuators->selected_regulator_pressure);
+        actuators->regulator_2_pressure =
+            actuators->selected_regulator_pressure;
+        actuators->set_regulator_2(actuators->regulator_2_pressure);
     }
 }
 
 void Comms::on_Enable_tapes() {
-    brakes->Tape_status = PinState::ON;
-    brakes->Tape_output.turn_on();
+    brakes->tape_enable_status = PinState::ON;
+    brakes->tape_enable_output.turn_on();
 }
 
 void Comms::on_Disable_tapes() {
-    brakes->Tape_status = PinState::OFF;
-    brakes->Tape_output.turn_off();
+    brakes->tape_enable_status = PinState::OFF;
+    brakes->tape_enable_output.turn_off();
 }
 
 void Comms::on_brake() { brakes->brake(); }
@@ -50,6 +54,10 @@ void Comms::start() {
         new DatagramSocket(IPV4(VCU_IP), CONTROL_STATION_UDP_PORT,
                            IPV4(CONTROL_SATION_IP), CONTROL_STATION_UDP_PORT);
 
+
+
+    lcu_tcp = new Socket(IPV4(VCU_IP),LOCAL_PORT, IPV4(LCU_IP), LCU_PORT);
+
     add_packets();
     add_orders();
 }
@@ -64,13 +72,16 @@ void Comms::add_packets() {
     flow = new HeapPacket(static_cast<uint16_t>(Packets_id::Flow),
                           &actuators->flow1, &actuators->flow2);
     regulator = new HeapPacket(static_cast<uint16_t>(Packets_id::Regulator),
-                               &actuators->regulator_1_input,
-                               &actuators->regulator_2_input);
+                               &actuators->regulator_1_pressure,
+                               &actuators->regulator_2_pressure);
     pressure = new HeapPacket(static_cast<uint16_t>(Packets_id::Pressure),
                               &actuators->pressure_1, &actuators->pressure_2,
                               &actuators->pressure_3, &actuators->pressure_4);
-    tapes_enabled = new HeapPacket(
-        static_cast<uint16_t>(Packets_id::Tapes_enable), &brakes->Tape_status);
+    tapes = new HeapPacket(
+        static_cast<uint16_t>(Packets_id::Tapes), &brakes->tape_enable_status,&brakes->tape_emergency);
+
+    sdc = new HeapPacket(
+        static_cast<uint16_t>(Packets_id::Sdc), &actuators->Sdc);
 }
 
 void Comms::add_orders() {
@@ -101,20 +112,51 @@ void Comms::add_state_orders() {
                            VCU_SM::GeneralStates::Operational);
 }
 
-void Comms::send_packets() { 
-    control_station_udp->send_packet(*states); 
+void Comms::send_packets() {
+    control_station_udp->send_packet(*states);
     control_station_udp->send_packet(*reeds);
     control_station_udp->send_packet(*flow);
     control_station_udp->send_packet(*regulator);
     control_station_udp->send_packet(*pressure);
-    control_station_udp->send_packet(*tapes_enabled);
+    control_station_udp->send_packet(*tapes);
 }
 
-void Comms::update(){
+void Comms::read_sensors() {
     actuators->read_regulators();
     actuators->read_pressure();
     actuators->read_flow();
     actuators->read_sdc();
     brakes->read_reeds();
     brakes->read_tape_emergency();
+}
+
+void Comms::update() {
+    read_sensors();
+
+    for (auto& pending : id_to_pending) {
+        if (pending.second.control_station) {
+            Socket_to_board[id_to_orders[pending.first].Board]->send_order(
+                *id_to_orders[pending.first].order);
+            id_to_timeout[pending.first] = Time::set_timeout(5000, [&]() {
+                // InfoWarning::InfoWarningTrigger("Timeout for order to control
+                // station");
+                if (id_to_timeout.contains(pending.first)) {
+                    Time::cancel_timeout(
+                        id_to_timeout[pending.first]);  // No se si esto es
+                                                        // valido
+                    id_to_timeout.erase(pending.first);
+                }
+            });
+
+        } else if (pending.second.board) {
+            if (id_to_timeout.contains(pending.first)) {
+                Time::cancel_timeout(id_to_timeout[pending.first]);
+                id_to_timeout.erase(pending.first);
+                auto it = id_to_flag.find(pending.first);
+                if (it != id_to_flag.end()) {
+                    *(it->second.first) = it->second.second;
+                }
+            }
+        }
+    }
 }

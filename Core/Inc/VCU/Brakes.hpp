@@ -35,9 +35,9 @@ class Brakes {
     bool All_reeds = false;
 
     PinState tape_emergency = PinState::ON;
-    DigitalOutput Tape_output;
+    DigitalOutput tape_enable_output;
 
-    PinState Tape_status = PinState::OFF;
+    PinState tape_enable_status = PinState::OFF;
     
     Brakes();
 

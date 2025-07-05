@@ -30,6 +30,8 @@ class Actuators {
     Regulator selected_regulator;
     Pump selected_pump;
     float selected_regulator_pressure;
+    float regulator_1_pressure;
+    float regulator_2_pressure;
 
     PinState regulator_1_input;
     PinState regulator_2_input;
@@ -39,7 +41,7 @@ class Actuators {
     PinState flow1;
     PinState flow2;
 
-    PinState Sdc;
+    PinState Sdc = PinState::ON;
 
     float pressure_1 = 0;
     float pressure_2 = 0;

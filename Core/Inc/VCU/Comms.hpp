@@ -40,8 +40,8 @@ class Comms {
         Reeds = 251,
         Regulator = 252,
         Pressure = 253,
-        Tapes_input = 254,
-        Tapes_enable = 255
+        Tapes = 254,
+        Sdc = 255
     };
 
     enum class Boards : uint8_t { PCU, HVSCU, BMSL, LCU, BLCU, BCU };
@@ -90,43 +90,43 @@ class Comms {
     static constexpr std::string LCU_IP = "192.168.1.3";
     static constexpr std::string BLCU_IP = "192.168.1.3";
 
-    static const uint16_t LOCAL_PORT = 50500;
-    static const uint16_t CONTROL_STATION_UDP_PORT = 50400;
-    static const uint16_t UDP_PORT = 50401;
+    static const uint32_t LOCAL_PORT = 50500;
+    static const uint32_t CONTROL_STATION_UDP_PORT = 50400;
+    static const uint32_t UDP_PORT = 50401;
 
-    static const uint16_t PCU_PORT = 50501;
-    static const uint16_t PCU_UDP_PORT = 50402;
+    static const uint32_t PCU_PORT = 50501;
+    static const uint32_t PCU_UDP_PORT = 50402;
 
-    static const uint16_t HVSCU_PORT = 50502;
-    static const uint16_t HVSCU_UDP_PORT = 50403;
+    static const uint32_t HVSCU_PORT = 50502;
+    static const uint32_t HVSCU_UDP_PORT = 50403;
 
-    static const uint16_t BMSL_PORT = 50503;
-    static const uint16_t BMSL_UDP_PORT = 50404;
+    static const uint32_t BMSL_PORT = 50503;
+    static const uint32_t BMSL_UDP_PORT = 50404;
 
-    static const uint16_t LCU_PORT = 50504;
-    static const uint16_t LCU_UDP_PORT = 50405;
+    static const uint32_t LCU_PORT = 50504;
+    static const uint32_t LCU_UDP_PORT = 50405;
 
-    static const uint16_t BLCU_PORT = 50505;
-    static const uint16_t BLCU_UDP_PORT = 50406;
+    static const uint32_t BLCU_PORT = 50505;
+    static const uint32_t BLCU_UDP_PORT = 50406;
 
     // -----------------Sockets-----------------
     static inline ServerSocket* control_station_tcp{};
     static inline DatagramSocket* control_station_udp{};
 
-    static inline Socket pcu_tcp{};
-    static inline DatagramSocket pcu_udp{};
+    static inline Socket* pcu_tcp{};
+    static inline DatagramSocket* pcu_udp{};
 
-    static inline Socket hvscu_tcp{};
-    static inline DatagramSocket hvscu_udp{};
+    static inline Socket* hvscu_tcp{};
+    static inline DatagramSocket* hvscu_udp{};
 
-    static inline Socket bmsl_tcp{};
-    static inline DatagramSocket bmsl_udp{};
+    static inline Socket* bmsl_tcp{};
+    static inline DatagramSocket* bmsl_udp{};
 
-    static inline Socket lcu_tcp{};
-    static inline DatagramSocket lcu_udp{};
+    static inline Socket* lcu_tcp{};
+    static inline DatagramSocket* lcu_udp{};
 
-    static inline Socket blcu_tcp{};
-    static inline DatagramSocket blcu_udp{};
+    static inline Socket* blcu_tcp{};
+    static inline DatagramSocket* blcu_udp{};
 
     // -----------------Packets-----------------
     static inline HeapPacket* states{};
@@ -135,7 +135,8 @@ class Comms {
     static inline HeapPacket* regulator{};
     static inline HeapPacket* pressure{};
     // static inline HeapPacket* Tapes{};
-    static inline HeapPacket* tapes_enabled{};
+    static inline HeapPacket* tapes{};
+    static inline HeapPacket* sdc{};
 
     /* static std::vector<HeapPacket*> packets{};  // Lo que mando a la gui
     struct OrderTriggers {
@@ -174,6 +175,7 @@ class Comms {
     static void add_orders();
     static void add_state_orders();
 
+    static void read_sensors();
     static void update();
     static bool connected();
 
@@ -204,7 +206,9 @@ class Comms {
     static void on_end_of_run();
 
     // -----------------Unordered maps-----------------
-    static inline std::unordered_map<Boards, Socket*> Socket_to_board{};
+    static inline std::unordered_map<Boards, Socket*> Socket_to_board{
+        {Boards::LCU, lcu_tcp}
+    };
 
     static inline std::unordered_map<Boards, string> Board_to_ip{
         {Boards::PCU, PCU_IP},

@@ -33,7 +33,8 @@ class VCU_SM {
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault,
-            [&]() { return !Comms::control_station_tcp->is_connected(); });
+            [&]() { 
+                return !Comms::control_station_tcp->is_connected(); });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
@@ -61,7 +62,7 @@ class VCU_SM {
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 bool emergency_tape =
                     static_cast<bool>(Comms::brakes->tape_emergency);
-                return !emergency_tape;
+                return !emergency_tape && Comms::brakes->tape_enable_status == PinState::ON;
             });
 
         GeneralStateMachine.add_enter_action(
