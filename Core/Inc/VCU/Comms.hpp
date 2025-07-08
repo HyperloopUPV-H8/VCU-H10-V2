@@ -29,30 +29,30 @@ class Comms {
 
     // -----------------Enums-----------------
     enum class Orders_id : uint16_t {
-        Potencia_refri = 98,
-        Set_Regulator = 99,
-        Enable_tapes = 100,
-        Disable_tapes = 101,
+        Potencia_refri = 33,
+        Set_Regulator = 34,
+        Enable_tapes = 35,
+        Disable_tapes = 36,
 
-        Levitation = 102,
-        Propulsion = 103,
-        Charging_lv = 104,
-        Charging_hv = 105,
-        Horizontal_levitation = 106,
-        Booster = 1790,
-        Brake = 108,
-        Close_contactors = 900,
-        End_of_run = 110,
-        Stop_levitation = 111,
-        Stop_propulsion = 112,
-        Stop_charging_lv = 113,
-        Stop_charging_hv = 114,
-        Stop_horizontal_levitation = 115,
-        Stop_booster = 1789,
-        Unbrake = 117,
-        Open_contactors = 118,
+        Levitation = 37,
+        Propulsion = 38,
+        Charging_lv = 39,
+        Charging_hv = 40,
+        Horizontal_levitation = 41,
+        Booster = 42,
+        Brake = 43,
+        Close_contactors = 44,
+        End_of_run = 45,
+        Stop_levitation = 46,
+        Stop_propulsion = 47,
+        Stop_charging_lv = 48,
+        Stop_charging_hv = 49,
+        Stop_horizontal_levitation = 50,
+        Stop_booster = 51,
+        Unbrake = 52,
+        Open_contactors = 53,
         Forward_booster = 1788,
-        Emergency_stop = 119
+        Emergency_stop = 55
     };
 
     enum class Packets_id : uint8_t {
@@ -66,6 +66,25 @@ class Comms {
 
         hvscu_state = 62,
         lcu_state = 63
+    };
+
+    enum class External_ids : uint16_t{
+        Levitation = 102,
+        Propulsion = 103,
+        Charging_lv = 104,
+        Charging_hv = 105,
+        Horizontal_levitation = 106,
+        Booster = 1790,
+        Close_contactors = 900,
+        End_of_run = 110,
+        Stop_levitation = 111,
+        Stop_propulsion = 112,
+        Stop_charging_lv = 113,
+        Stop_charging_hv = 114,
+        Stop_horizontal_levitation = 115,
+        Stop_booster = 1789,
+        Open_contactors = 118,
+        Forward_booster = 1788
     };
 
     enum class HVSCU_states : uint8_t {
@@ -194,29 +213,41 @@ class Comms {
     static inline HeapOrder* Enable_tapes{};
     static inline HeapOrder* Disable_tapes{};
 
-    static inline HeapStateOrder* Unbrake{};
-    static inline HeapStateOrder* Brake{};
-
     static inline HeapOrder* levitation{};
+    static inline HeapOrder* remote_levitation{};
     static inline HeapOrder* propulsion{};
+    static inline HeapOrder* remote_propulsion{};
     static inline HeapOrder* charging_lv{};
+    static inline HeapOrder* remote_charging_lv{};
     static inline HeapOrder* charging_hv{};
+    static inline HeapOrder* remote_charging_hv{};
     static inline HeapOrder* horizontal_levitation{};
+    static inline HeapOrder* remote_horizontal_levitation{};
     static inline HeapOrder* booster{};
+    static inline HeapOrder* remote_booster{};
 
     static inline HeapOrder* brake{};
     static inline HeapOrder* close_contactors{};
+    static inline HeapOrder* remote_close_contactors{};
     static inline HeapOrder* end_of_run{};
+    static inline HeapOrder* remote_end_of_run{};
 
     static inline HeapOrder* stop_levitation{};
+    static inline HeapOrder* remote_stop_levitation{};
     static inline HeapOrder* stop_propulsion{};
+    static inline HeapOrder* remote_stop_propulsion{};
     static inline HeapOrder* stop_charging_lv{};
+    static inline HeapOrder* remote_stop_charging_lv{};
     static inline HeapOrder* stop_charging_hv{};
+    static inline HeapOrder* remote_stop_charging_hv{};
     static inline HeapOrder* stop_horizontal_levitation{};
+    static inline HeapOrder* remote_stop_horizontal_levitation{};
     static inline HeapOrder* stop_booster{};
+    static inline HeapOrder* remote_stop_booster{};
 
     static inline HeapOrder* unbrake{};
     static inline HeapOrder* open_contactors{};
+    static inline HeapOrder* remote_open_contactors{};
 
     static inline HeapOrder* forward_booster_order{};
     static inline HeapOrder* emergency_stop{};

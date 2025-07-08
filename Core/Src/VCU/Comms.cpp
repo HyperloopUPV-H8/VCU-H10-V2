@@ -57,8 +57,7 @@ void Comms::booster_callback() { booster_flag = true; }
 void Comms::stop_booster_callback() { stop_booster_flag = true; }
 
 void Comms::emergency_stop_callback() {
-    VCU::state_machine->GeneralStateMachine.force_change_state(
-        VCU_SM::GeneralStates::Fault);
+    ProtectionManager::fault_and_propagate();
 }
 
 //------------------------------------------------------
@@ -87,7 +86,8 @@ void Comms::start() {
     lcu_udp = new DatagramSocket(IPV4(VCU_IP), LCU_UDP_PORT, IPV4(LCU_IP),
                                  LCU_UDP_PORT);
 
-    bcu_tcp = new Socket(IPV4(VCU_IP), BCU_PORT, IPV4(BCU_IP), JUANS_REMOTE_PORT);
+    bcu_tcp =
+        new Socket(IPV4(VCU_IP), BCU_PORT, IPV4(BCU_IP), JUANS_REMOTE_PORT);
 
     add_packets();
     add_orders();
@@ -146,6 +146,33 @@ void Comms::add_orders() {
 
     unbrake = new HeapOrder(static_cast<uint16_t>(Orders_id::Unbrake),
                             &unbrake_callback);
+
+    //-----------------------------------------------------------------------------
+
+    remote_close_contactors =
+        new HeapOrder(static_cast<uint16_t>(External_ids::Close_contactors),
+                      &close_contactors_callback);
+
+    remote_open_contactors =
+        new HeapOrder(static_cast<uint16_t>(External_ids::Open_contactors),
+                      &open_contactors_callback);
+
+    remote_levitation =
+        new HeapOrder(static_cast<uint16_t>(External_ids::Levitation),
+                      &levitation_callback, &levitation_distance);
+
+    remote_stop_levitation =
+        new HeapOrder(static_cast<uint16_t>(External_ids::Stop_levitation),
+                      &stop_levitation_callback);
+
+    remote_booster = new HeapOrder(static_cast<uint16_t>(External_ids::Booster),
+                                   &booster_callback);
+
+    remote_stop_booster =
+        new HeapOrder(static_cast<uint16_t>(External_ids::Stop_booster),
+                      &stop_booster_callback);
+
+    //-----------------------------------------------------------------------------
 
     close_contactors =
         new HeapOrder(static_cast<uint16_t>(Orders_id::Close_contactors),
@@ -234,7 +261,7 @@ void Comms::check_levitation_order() {
             static uint8_t timeout_id = -1;
 
             if (!levitation_sent) {
-                lcu_tcp->send_order(*levitation);
+                lcu_tcp->send_order(*remote_levitation);
                 levitation_sent = true;
             } else {
                 if (lcu_v_state ==
@@ -268,7 +295,7 @@ void Comms::check_stop_levitation_order() {
             static uint8_t timeout_id = -1;
 
             if (!stop_levitation_sent) {
-                lcu_tcp->send_order(*stop_levitation);
+                lcu_tcp->send_order(*remote_stop_levitation);
                 stop_levitation_sent = true;
             } else {
                 if (lcu_v_state ==
@@ -289,7 +316,9 @@ void Comms::check_stop_levitation_order() {
                 }
             }
         } else {
-            WARNING("Cannot stop levitating in this state");
+            //WARNING("Cannot stop levitating in this state");
+            InfoWarning::InfoWarningTrigger(
+                "Cannot stop levitating in this state");
             stop_levitation_flag = false;
         }
     }
@@ -303,7 +332,7 @@ void Comms::check_booster_order() {
             static uint8_t timeout_id = -1;
 
             if (!booster_sent) {
-                lcu_tcp->send_order(*booster);
+                lcu_tcp->send_order(*remote_booster);
                 booster_sent = true;
             } else {
                 if (lcu_h_state ==
@@ -338,7 +367,7 @@ void Comms::check_stop_booster_order() {
             static uint8_t timeout_id = -1;
 
             if (!stop_booster_sent) {
-                lcu_tcp->send_order(*stop_booster);
+                lcu_tcp->send_order(*remote_stop_booster);
                 stop_booster_sent = true;
             } else {
                 if (lcu_h_state ==
