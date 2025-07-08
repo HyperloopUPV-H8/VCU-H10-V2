@@ -42,6 +42,7 @@ class Actuators {
     PinState flow2;
 
     PinState Sdc = PinState::ON;
+    bool contactors_closed = false;
 
     float pressure_1 = 0;
     float pressure_2 = 0;

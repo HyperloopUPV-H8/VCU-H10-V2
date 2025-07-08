@@ -26,15 +26,24 @@ class VCU_SM {
         OperationalStateMachine.add_state(OperationalStates::EndOfRun);
         OperationalStateMachine.add_state(OperationalStates::Energyzed);
         OperationalStateMachine.add_state(OperationalStates::Ready);
+        OperationalStateMachine.add_state(OperationalStates::Demonstration);
+
+        GeneralStateMachine.add_state_machine(OperationalStateMachine,
+                                              GeneralStates::Operational);
 
         GeneralStateMachine.add_transition(
-            GeneralStates::Connecting, GeneralStates::Operational,
-            [&]() { return Comms::control_station_tcp->is_connected(); });
+            GeneralStates::Connecting, GeneralStates::Operational, [&]() {
+                return Comms::control_station_tcp->is_connected() &&
+                       Comms::lcu_tcp->is_connected() &&
+                       Comms::bcu_tcp->is_connected();
+            });
 
         GeneralStateMachine.add_transition(
-            GeneralStates::Operational, GeneralStates::Fault,
-            [&]() { 
-                return !Comms::control_station_tcp->is_connected(); });
+            GeneralStates::Operational, GeneralStates::Fault, [&]() {
+                return !Comms::control_station_tcp->is_connected() ||
+                       !Comms::lcu_tcp->is_connected() ||
+                       !Comms::bcu_tcp->is_connected();
+            });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
@@ -62,7 +71,8 @@ class VCU_SM {
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 bool emergency_tape =
                     static_cast<bool>(Comms::brakes->tape_emergency);
-                return !emergency_tape && Comms::brakes->tape_enable_status == PinState::ON;
+                return !emergency_tape &&
+                       Comms::brakes->tape_enable_status == PinState::ON;
             });
 
         GeneralStateMachine.add_enter_action(
@@ -80,41 +90,41 @@ class VCU_SM {
             },
             GeneralStates::Fault);
 
-        // el sdc tambien manda a fault?
-
-        /* OperationalStateMachine.add_transition(
-            OperationalStates::Idle, OperationalStates::Energyzed,
-            [&]() { return ethernet->requested_close_contactors; });
+        //-----------
 
         OperationalStateMachine.add_transition(
-            OperationalStates::Idle, OperationalStates::EndOfRun,
-            [&]() { return ethernet->requested_end_of_run; });
+            OperationalStates::Idle, OperationalStates::Energyzed,
+            [&]() { return Comms::actuators->contactors_closed; });
 
         OperationalStateMachine.add_transition(
             OperationalStates::Energyzed, OperationalStates::Idle,
-            [&]() { return ethernet->requested_open_contactors; }); */
+            [&]() { return !Comms::actuators->contactors_closed; });
+
+        OperationalStateMachine.add_transition(
+            OperationalStates::Demonstration, OperationalStates::Idle,
+            [&]() { return !Comms::actuators->contactors_closed; });
+
+        OperationalStateMachine.add_transition(
+            OperationalStates::Ready, OperationalStates::Idle,
+            [&]() { return !Comms::actuators->contactors_closed; });
+
+        OperationalStateMachine.add_transition(
+            OperationalStates::Energyzed, OperationalStates::Ready,
+            [&]() { return !Comms::brakes->Active_brakes; });
 
         OperationalStateMachine.add_transition(
             OperationalStates::Ready, OperationalStates::Energyzed,
             [&]() { return Comms::brakes->Active_brakes; });
 
+        //-----------
+
         OperationalStateMachine.add_transition(
-            OperationalStates::Energyzed, OperationalStates::Ready,
-            [&]() { return (!Comms::brakes->Active_brakes); });
+            OperationalStates::Ready, OperationalStates::Demonstration,
+            [&]() { return Comms::order_demonstration_bitfield > 0; });
 
-        /* OperationalStateMachine.add_enter_action(
-            [&]() { ethernet->requested_close_contactors = false; },
-            OperationalStates::Energyzed);
-
-        OperationalStateMachine.add_enter_action(
-            [&]() { ethernet->requested_end_of_run = false; },
-            OperationalStates::EndOfRun);
-
-        OperationalStateMachine.add_enter_action(
-            [&]() { ethernet->requested_open_contactors = false; },
-            OperationalStates::Idle); */
-
-        // ethernet->initialize_state_orders();
+        OperationalStateMachine.add_transition(
+            OperationalStates::Demonstration, OperationalStates::Ready,
+            [&]() { return Comms::order_demonstration_bitfield == 0; });
 
         //-----------------CYCLYC ACTIONS-----------------------
 
@@ -137,5 +147,18 @@ class VCU_SM {
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() { Comms::reading_sensors = true; }, 100ms,
             GeneralStates::Fault);
+
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() {
+                /* while (!Comms::hvscu_tcp->is_connected()) {
+                    Comms::hvscu_tcp->reconnect();
+                } */
+                while (!Comms::lcu_tcp->is_connected() ||
+                       !Comms::bcu_tcp->is_connected()) {
+                    Comms::lcu_tcp->reconnect();
+                    Comms::bcu_tcp->reconnect();
+                }
+            },
+            100ms, GeneralStates::Connecting);
     }
 };

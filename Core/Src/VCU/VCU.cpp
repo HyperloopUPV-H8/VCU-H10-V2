@@ -14,9 +14,6 @@ void VCU::init(){
 }
 
 void VCU::start(){
-    //state_machine->actuators.init();
-    //state_machine->brakes.init();
-
     Comms::actuators->init();
     Comms::brakes->init();
 
@@ -32,13 +29,16 @@ void VCU::send_packets(){
 
 void VCU::read_sensors(){
     if(Comms::reading_sensors){
-        Comms::update();
         Comms::reading_sensors = false;
     }
 }
 
 void VCU::update(){
+    
     state_machine->GeneralStateMachine.check_transitions();
+    state_machine->OperationalStateMachine.check_transitions();
+
+    Comms::update();
     read_sensors();
     send_packets();
     ProtectionManager::check_protections();
