@@ -2,12 +2,11 @@
 #include "ST-LIB.hpp"
 #include "VCU/Actuators.hpp"
 #include "VCU/Brakes.hpp"
-#include "VCU/Comms.hpp"
+#include "VCU/Comms/Comms.hpp"
 #include "VCU/Leds.hpp"
 
 class Comms {
    public:
-
     static inline Leds* leds;
     static inline Actuators* actuators;
     static inline Brakes* brakes;
@@ -24,6 +23,7 @@ class Comms {
     static constexpr uint8_t end_of_run_bit{8};
 
     static inline uint8_t hvscu_state{};
+    static inline uint8_t pcu_state{};
     static inline uint8_t lcu_v_state{};
     static inline uint8_t lcu_h_state{};
 
@@ -52,10 +52,17 @@ class Comms {
         Unbrake = 52,
         Open_contactors = 53,
         Forward_booster = 1788,
-        Emergency_stop = 55
+        Emergency_stop = 55,
+
+        Runs = 56,
+        SVPWM =  57,
+        Stop_motor = 58,
+        Current_control = 59,
+        Speed_control = 60,
+        Motor_brake = 61
     };
 
-    enum class Packets_id : uint8_t {
+    enum class Packets_id : uint16_t {
         States = 249,
         Flow = 250,
         Reeds = 251,
@@ -64,11 +71,12 @@ class Comms {
         Tapes = 254,
         Sdc = 255,
 
-        hvscu_state = 62,
-        lcu_state = 63
+        hvscu_state = 941,
+        lcu_state = 63,
+        pcu_state = 64
     };
 
-    enum class External_ids : uint16_t{
+    enum class External_ids : uint16_t {
         Levitation = 102,
         Propulsion = 103,
         Charging_lv = 104,
@@ -83,12 +91,22 @@ class Comms {
         Stop_charging_hv = 114,
         Stop_horizontal_levitation = 115,
         Stop_booster = 1789,
-        Open_contactors = 118,
-        Forward_booster = 1788
+        Open_contactors = 901,
+        Forward_booster = 1788,
+
+        Runs = 1000,
+        SVPWM =  1001,
+        Stop_motor = 1002,
+        Current_control = 1003,
+        Speed_control = 1004,
+        Motor_brake = 1005
     };
 
-    enum class HVSCU_states : uint8_t {
-        HVSCU_Closed = 2,
+    enum class HVSCU_states : uint8_t { HVSCU_Opened = 0, HVSCU_Closed = 2 };
+
+    enum class PCU_states : uint8_t {
+        PCU_Stop_Propulsion = 0,
+        PCU_Propulsion = 2
     };
 
     enum class LCU_states : uint8_t {
@@ -128,22 +146,79 @@ class Comms {
     static inline bool unbrake_flag{};
     static inline bool open_contactors_flag{};
 
+    static inline bool runs_flag{};
+    static inline bool svpwm_flag{};
+    static inline bool stop_motor_flag{};
+    static inline bool current_control_flag{};
+    static inline bool speed_control_flag{};
+    static inline bool motor_brake_flag{};
+
     // Orders sent to boards
 
     static inline bool close_contactors_sent{};
+    static inline bool open_contactors_sent{};
+
+    static inline bool propulsion_sent{};
+    static inline bool stop_propulsion_sent{};
+
     static inline bool levitation_sent{};
     static inline bool stop_levitation_sent{};
+
     static inline bool booster_sent{};
     static inline bool stop_booster_sent{};
 
+    static inline bool runs_sent{};
+    static inline bool svpwm_sent{};
+    static inline bool stop_motor_sent{};
+    static inline bool current_control_sent{};
+    static inline bool speed_control_sent{};
+    static inline bool motor_brake_sent{}; 
+
     // -----------------Order variables-----------------
+    // PCU
+
+    enum class Direction : uint8_t { FORWARD = 0, BACKWARDS = 1 };
+
+
+    //Order 1 Runs
+    static inline uint8_t run_id{};
+
+
+    // Order 2 Start SVPWM // no movement
+    static inline Direction motor_direction_1;
+    static inline float max_voltage_1{};
+    static inline float reference_voltage_1{};
+    static inline float commutation_frequency_1{};
+    static inline float modulation_frequency_1{};
+
+    // Order 3  Stop motor
+    //NO ARGS
+
+    // Order 4 Send reference current
+    static inline float reference_current_2{};
+    static inline Direction motor_direction_2;
+    static inline float max_voltage_2{};
+    static inline float commutation_frequency_2{};
+    static inline float modulation_frequency_2{};
+
+    // Order 5 Send reference speed
+    static inline Direction motor_direction_3{};
+    static inline float reference_speed_3{};
+    static inline float max_voltage_3{};
+    static inline float commutation_frequency_3{};
+
+    // Order 6 Brake using motor
+    // NO ARGS
+
+
+    // LCU
     static inline float levitation_distance{};
 
     // -----------------IP's/Ports-----------------
     static constexpr std::string CONTROL_STATION_IP = "192.168.0.9";
 
     static constexpr std::string VCU_IP = "192.168.1.3";
-    static constexpr std::string PCU_IP = "192.168.1.3";
+    static constexpr std::string PCU_IP = "192.168.1.5";
     static constexpr std::string HVSCU_IP = "192.168.1.7";
     static constexpr std::string BMSL_IP = "192.168.1.3";
     static constexpr std::string LCU_IP = "192.168.1.4";
@@ -206,6 +281,7 @@ class Comms {
     // Remote packets
     static inline HeapPacket* hvscu_state_packet{};
     static inline HeapPacket* lcu_state_packet{};
+    static inline HeapPacket* pcu_state_packet{};
 
     // -----------------Orders-----------------
     static inline HeapOrder* Potencia_refri{};
@@ -252,6 +328,21 @@ class Comms {
     static inline HeapOrder* forward_booster_order{};
     static inline HeapOrder* emergency_stop{};
 
+    static inline HeapOrder* runs{};
+    static inline HeapOrder* remote_runs{};
+    static inline HeapOrder* svpwm{};
+    static inline HeapOrder* remote_svpwm{};
+    static inline HeapOrder* stop_motor{};
+    static inline HeapOrder* remote_stop_motor{};
+    static inline HeapOrder* current_control{};
+    static inline HeapOrder* remote_current_control{};
+    static inline HeapOrder* speed_control{};
+    static inline HeapOrder* remote_speed_control{};
+    static inline HeapOrder* motor_brake{};
+    static inline HeapOrder* remote_motor_brake{};
+
+    
+
     // -----------------Functions-----------------
     static void init();
     static void start();
@@ -295,10 +386,30 @@ class Comms {
 
     static void emergency_stop_callback();
 
+    static void runs_callback();
+    static void svpwm_callback();
+    static void stop_motor_callback();
+    static void current_control_callback();
+    static void speed_control_callback();
+    static void motor_brake_callback();
+
     // Check orders
     static void check_close_contactors_order();
+    static void check_open_contactors_order();
+
+    static void check_propulsion_order();
+    static void check_stop_propulsion_order();
+
     static void check_levitation_order();
     static void check_stop_levitation_order();
+
     static void check_booster_order();
     static void check_stop_booster_order();
+
+    static void check_runs_order();
+    static void check_svpwm_order();
+    static void check_stop_motor_order();
+    static void check_current_control_order();
+    static void check_speed_control_order();
+    static void check_motor_brake_order();
 };

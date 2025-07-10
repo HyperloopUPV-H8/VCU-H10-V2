@@ -1,6 +1,6 @@
 #pragma once
 #include "ST-LIB.hpp"
-#include "VCU/Comms.hpp"
+#include "VCU/Comms/Comms.hpp"
 
 using namespace std::chrono_literals;
 
@@ -12,7 +12,7 @@ class VCU_SM {
         Fault,
     };
 
-    enum OperationalStates { Idle, EndOfRun, Energyzed, Ready, Demonstration };
+    enum OperationalStates { Idle, EndOfRun, Energized, Ready, Demonstration };
 
     StateMachine GeneralStateMachine;
     StateMachine OperationalStateMachine;
@@ -24,7 +24,7 @@ class VCU_SM {
 
         OperationalStateMachine = StateMachine(OperationalStates::Idle);
         OperationalStateMachine.add_state(OperationalStates::EndOfRun);
-        OperationalStateMachine.add_state(OperationalStates::Energyzed);
+        OperationalStateMachine.add_state(OperationalStates::Energized);
         OperationalStateMachine.add_state(OperationalStates::Ready);
         OperationalStateMachine.add_state(OperationalStates::Demonstration);
 
@@ -34,15 +34,15 @@ class VCU_SM {
         GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Operational, [&]() {
                 return Comms::control_station_tcp->is_connected() &&
-                       Comms::lcu_tcp->is_connected() &&
-                       Comms::bcu_tcp->is_connected();
+                       Comms::hvscu_tcp->is_connected() &&
+                       Comms::pcu_tcp->is_connected();
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 return !Comms::control_station_tcp->is_connected() ||
-                       !Comms::lcu_tcp->is_connected() ||
-                       !Comms::bcu_tcp->is_connected();
+                       !Comms::hvscu_tcp->is_connected() ||
+                       !Comms::pcu_tcp->is_connected();
             });
 
         GeneralStateMachine.add_transition(
@@ -93,11 +93,11 @@ class VCU_SM {
         //-----------
 
         OperationalStateMachine.add_transition(
-            OperationalStates::Idle, OperationalStates::Energyzed,
+            OperationalStates::Idle, OperationalStates::Energized,
             [&]() { return Comms::actuators->contactors_closed; });
 
         OperationalStateMachine.add_transition(
-            OperationalStates::Energyzed, OperationalStates::Idle,
+            OperationalStates::Energized, OperationalStates::Idle,
             [&]() { return !Comms::actuators->contactors_closed; });
 
         OperationalStateMachine.add_transition(
@@ -109,11 +109,11 @@ class VCU_SM {
             [&]() { return !Comms::actuators->contactors_closed; });
 
         OperationalStateMachine.add_transition(
-            OperationalStates::Energyzed, OperationalStates::Ready,
+            OperationalStates::Energized, OperationalStates::Ready,
             [&]() { return !Comms::brakes->Active_brakes; });
 
         OperationalStateMachine.add_transition(
-            OperationalStates::Ready, OperationalStates::Energyzed,
+            OperationalStates::Ready, OperationalStates::Energized,
             [&]() { return Comms::brakes->Active_brakes; });
 
         //-----------
@@ -150,13 +150,12 @@ class VCU_SM {
 
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() {
-                /* while (!Comms::hvscu_tcp->is_connected()) {
+                if(!Comms::hvscu_tcp->is_connected()){
                     Comms::hvscu_tcp->reconnect();
-                } */
-                while (!Comms::lcu_tcp->is_connected() ||
-                       !Comms::bcu_tcp->is_connected()) {
-                    Comms::lcu_tcp->reconnect();
-                    Comms::bcu_tcp->reconnect();
+                }
+
+                if(!Comms::pcu_tcp->is_connected()){
+                    Comms::pcu_tcp->reconnect();
                 }
             },
             100ms, GeneralStates::Connecting);
