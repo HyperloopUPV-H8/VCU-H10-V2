@@ -9,8 +9,10 @@ class Actuators {
     DigitalSensor Regulator_in1;
     DigitalSensor Regulator_in2;
 
-    PWM Pump_c1;
-    PWM Pump_c2;
+    /* PWM Pump_c1;
+    PWM Pump_c2; */
+    DigitalOutput Pump_c1;
+    DigitalOutput Pump_c2;
 
     DigitalSensor flow1_input;
     DigitalSensor flow2_input;
@@ -44,10 +46,10 @@ class Actuators {
     PinState Sdc = PinState::ON;
     bool contactors_closed = false;
 
-    float pressure_1 = 0;
-    float pressure_2 = 0;
-    float pressure_3 = 0;
-    float pressure_4 = 0;
+    float pressure_high = 0;
+    float pressure_regulator = 0;
+    float pressure_brakes = 0;
+    float pressure_capsule = 0;
 
     Actuators();
 

@@ -8,10 +8,6 @@ Brakes::Brakes(){
     reed2_input = DigitalSensor(REED2_PIN, &reed2);
     reed3_input = DigitalSensor(REED3_PIN, &reed3);
     reed4_input = DigitalSensor(REED4_PIN, &reed4);
-    reed5_input = DigitalSensor(REED5_PIN, &reed5);
-    reed6_input = DigitalSensor(REED6_PIN, &reed6);
-    reed7_input = DigitalSensor(REED7_PIN, &reed7);
-    reed8_input = DigitalSensor(REED8_PIN, &reed8);
 
     // Tape_input = DigitalSensor(TAPE_INPUT_PIN, &Tape_state);
     tape_enable_output = DigitalOutput(TAPE_E_PIN);
@@ -20,8 +16,8 @@ Brakes::Brakes(){
 }
 
 void Brakes::init(){
-    Actuator_out.turn_on();
-    tape_enable_output.turn_on();//Hardcodeado para desabilitar tapes creo, o al reves xd
+    Actuator_out.turn_off();
+    tape_enable_output.turn_on();
 }
 
 void Brakes::brake(){
@@ -45,19 +41,11 @@ void Brakes::read_reeds() {
     reed2_input.read();
     reed3_input.read();
     reed4_input.read();
-    reed5_input.read();
-    reed6_input.read();
-    reed7_input.read();
-    reed8_input.read();
 
     All_reeds = reed1 && 
                 reed2 &&
                 reed3 &&
-                reed4 &&
-                reed5 &&
-                reed6 &&
-                reed7 &&
-                reed8;
+                reed4;
 }
 
 void Brakes::read_tape_emergency() {

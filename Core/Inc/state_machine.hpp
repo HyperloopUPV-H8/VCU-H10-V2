@@ -35,14 +35,18 @@ class VCU_SM {
             GeneralStates::Connecting, GeneralStates::Operational, [&]() {
                 return Comms::control_station_tcp->is_connected() &&
                        Comms::hvscu_tcp->is_connected() &&
-                       Comms::pcu_tcp->is_connected();
+                       Comms::pcu_tcp->is_connected() &&
+                       Comms::lcu_tcp->is_connected() &&
+                       Comms::bcu_tcp->is_connected();
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 return !Comms::control_station_tcp->is_connected() ||
                        !Comms::hvscu_tcp->is_connected() ||
-                       !Comms::pcu_tcp->is_connected();
+                       !Comms::pcu_tcp->is_connected() ||
+                       !Comms::lcu_tcp->is_connected() ||
+                       !Comms::bcu_tcp->is_connected();
             });
 
         GeneralStateMachine.add_transition(
@@ -52,20 +56,20 @@ class VCU_SM {
                         (!Comms::brakes->breaks_first_time));
             });
 
-        GeneralStateMachine.add_transition(
+        /* GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault, [&]() {
                 return ((Comms::brakes->All_reeds &&
                          Comms::brakes->Active_brakes) &&
                         (!Comms::brakes->breaks_first_time));
-            });
+            }); */
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault,
             [&]() { return (!Comms::actuators->Sdc); });
 
-        GeneralStateMachine.add_transition(
+        /* GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault,
-            [&]() { return (!Comms::actuators->Sdc); });
+            [&]() { return (!Comms::actuators->Sdc); }); */
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
@@ -86,6 +90,7 @@ class VCU_SM {
         GeneralStateMachine.add_enter_action(
             [&]() {
                 Comms::leds->leds_fault();
+
                 Time::set_timeout(100, [&]() { Comms::brakes->brake(); });
             },
             GeneralStates::Fault);
@@ -150,12 +155,20 @@ class VCU_SM {
 
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() {
-                if(!Comms::hvscu_tcp->is_connected()){
+                if (!Comms::hvscu_tcp->is_connected()) {
                     Comms::hvscu_tcp->reconnect();
                 }
 
-                if(!Comms::pcu_tcp->is_connected()){
+                if (!Comms::pcu_tcp->is_connected()) {
                     Comms::pcu_tcp->reconnect();
+                }
+
+                if (!Comms::lcu_tcp->is_connected()) {
+                    Comms::lcu_tcp->reconnect();
+                }
+
+                if (!Comms::bcu_tcp->is_connected()) {
+                    Comms::bcu_tcp->reconnect();
                 }
             },
             100ms, GeneralStates::Connecting);

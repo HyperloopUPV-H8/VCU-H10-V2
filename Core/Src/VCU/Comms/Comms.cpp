@@ -40,9 +40,9 @@ void Comms::on_Disable_tapes() {
     brakes->tape_enable_output.turn_off();
 }
 
-void Comms::brake_callback() { brakes->brake(); }
+void Comms::brake_callback() { brake_flag = true; }
 
-void Comms::unbrake_callback() { brakes->unbrake(); }
+void Comms::unbrake_callback() { unbrake_flag = true; }
 
 void Comms::close_contactors_callback() { close_contactors_flag = true; }
 
@@ -110,16 +110,16 @@ void Comms::add_packets() {
                             VCU::general_state, VCU::operational_state);
     reeds = new HeapPacket(static_cast<uint16_t>(Packets_id::Reeds),
                            &brakes->reed1, &brakes->reed2, &brakes->reed3,
-                           &brakes->reed4, &brakes->reed5, &brakes->reed6,
-                           &brakes->reed7, &brakes->reed8, &brakes->All_reeds);
+                           &brakes->reed4, &brakes->All_reeds);
     flow = new HeapPacket(static_cast<uint16_t>(Packets_id::Flow),
                           &actuators->flow1, &actuators->flow2);
     regulator = new HeapPacket(static_cast<uint16_t>(Packets_id::Regulator),
                                &actuators->regulator_1_pressure,
                                &actuators->regulator_2_pressure);
-    pressure = new HeapPacket(static_cast<uint16_t>(Packets_id::Pressure),
-                              &actuators->pressure_1, &actuators->pressure_2,
-                              &actuators->pressure_3, &actuators->pressure_4);
+    pressure = new HeapPacket(
+        static_cast<uint16_t>(Packets_id::Pressure), &actuators->pressure_high,
+        &actuators->pressure_regulator, &actuators->pressure_brakes,
+        &actuators->pressure_capsule);
     tapes =
         new HeapPacket(static_cast<uint16_t>(Packets_id::Tapes),
                        &brakes->tape_enable_status, &brakes->tape_emergency);
@@ -225,25 +225,27 @@ void Comms::add_orders() {
     remote_stop_motor = new HeapOrder(
         static_cast<uint16_t>(External_ids::Stop_motor), &stop_motor_callback);
 
-    current_control = new HeapOrder(
-        static_cast<uint16_t>(Orders_id::Current_control),
-        &current_control_callback, &modulation_frequency_2, &commutation_frequency_2,
-        &reference_current_2, &max_voltage_2, &motor_direction_2);
+    current_control =
+        new HeapOrder(static_cast<uint16_t>(Orders_id::Current_control),
+                      &current_control_callback, &modulation_frequency_2,
+                      &commutation_frequency_2, &reference_current_2,
+                      &max_voltage_2, &motor_direction_2);
 
-    remote_current_control = new HeapOrder(
-        static_cast<uint16_t>(External_ids::Current_control),
-        &current_control_callback, &modulation_frequency_2, &commutation_frequency_2,
-        &reference_current_2, &max_voltage_2, &motor_direction_2);
+    remote_current_control =
+        new HeapOrder(static_cast<uint16_t>(External_ids::Current_control),
+                      &current_control_callback, &modulation_frequency_2,
+                      &commutation_frequency_2, &reference_current_2,
+                      &max_voltage_2, &motor_direction_2);
 
     speed_control = new HeapOrder(
         static_cast<uint16_t>(Orders_id::Speed_control),
-        &speed_control_callback, &reference_speed_3,
-        &commutation_frequency_3, &max_voltage_3, &motor_direction_3);
+        &speed_control_callback, &reference_speed_3, &commutation_frequency_3,
+        &max_voltage_3, &motor_direction_3);
 
     remote_speed_control = new HeapOrder(
         static_cast<uint16_t>(External_ids::Speed_control),
-        &speed_control_callback, &reference_speed_3,
-        &commutation_frequency_3, &max_voltage_3, &motor_direction_3);
+        &speed_control_callback, &reference_speed_3, &commutation_frequency_3,
+        &max_voltage_3, &motor_direction_3);
 
     motor_brake = new HeapOrder(static_cast<uint16_t>(Orders_id::Motor_brake),
                                 &motor_brake_callback);
@@ -280,6 +282,7 @@ void Comms::send_packets() {
     control_station_udp->send_packet(*regulator);
     control_station_udp->send_packet(*pressure);
     control_station_udp->send_packet(*tapes);
+    control_station_udp->send_packet(*sdc);
 }
 
 void Comms::read_sensors() {
@@ -334,14 +337,43 @@ void Comms::check_open_contactors_order() {
                 timeout_id = -1;
                 actuators->contactors_closed = false;
                 open_contactors_flag = false;
+                brakes->brake();  // Ensure brakes are applied when contactors
+                                  // are open
                 open_contactors_sent = false;
             } else {
                 if (timeout_id == -1) {
-                    timeout_id = Time::set_timeout(6000, [&]() {
+                    timeout_id = Time::set_timeout(100, [&]() {
                         ProtectionManager::fault_and_propagate();
                     });
                 }
             }
+        }
+    }
+}
+
+void Comms::check_brake_order() {
+    if (brake_flag) {
+        if (*VCU::operational_state == VCU_SM::OperationalStates::Ready ||
+            *VCU::operational_state ==
+                VCU_SM::OperationalStates::Demonstration) {
+            brakes->brake();
+            actuators->set_regulator_1(0);
+            brake_flag = false;
+        } else {
+            WARNING("Cannot brake in this state");
+            brake_flag = false;
+        }
+    }
+}
+
+void Comms::check_unbrake_order() {
+    if (unbrake_flag) {
+        if (*VCU::operational_state == VCU_SM::OperationalStates::Energized) {
+            brakes->unbrake();
+            unbrake_flag = false;
+        } else {
+            WARNING("Cannot unbrake in this state");
+            unbrake_flag = false;
         }
     }
 }
@@ -747,6 +779,9 @@ void Comms::check_orders() {
     check_close_contactors_order();
     check_open_contactors_order();
 
+    check_brake_order();
+    check_unbrake_order();
+
     check_levitation_order();
     check_stop_levitation_order();
 
@@ -761,7 +796,4 @@ void Comms::check_orders() {
     check_motor_brake_order();
 }
 
-void Comms::update() {
-    check_orders();
-    read_sensors();
-}
+void Comms::update() { check_orders(); }

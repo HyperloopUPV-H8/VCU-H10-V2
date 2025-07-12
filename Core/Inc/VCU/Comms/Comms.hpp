@@ -53,6 +53,7 @@ class Comms {
         Open_contactors = 53,
         Forward_booster = 1788,
         Emergency_stop = 55,
+        Reset_vehicle = 62,
 
         Runs = 56,
         SVPWM =  57,
@@ -396,6 +397,9 @@ class Comms {
     // Check orders
     static void check_close_contactors_order();
     static void check_open_contactors_order();
+
+    static void check_brake_order();
+    static void check_unbrake_order();
 
     static void check_propulsion_order();
     static void check_stop_propulsion_order();

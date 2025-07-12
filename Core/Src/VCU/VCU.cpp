@@ -29,6 +29,7 @@ void VCU::send_packets(){
 
 void VCU::read_sensors(){
     if(Comms::reading_sensors){
+        Comms::read_sensors();
         Comms::reading_sensors = false;
     }
 }
