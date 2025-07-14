@@ -39,7 +39,7 @@ void VCU::update(){
     state_machine->GeneralStateMachine.check_transitions();
     state_machine->OperationalStateMachine.check_transitions();
 
-    Comms::update();
+    //Comms::update();
     read_sensors();
     send_packets();
     ProtectionManager::check_protections();

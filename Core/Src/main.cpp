@@ -10,8 +10,9 @@
 int main(void) {
 
     VCU::init();
-    STLIB::start("00:00:00:00:01:03","192.168.1.3", "255.255.0.0");
+    STLIB::start("00:00:00:00:01:03","192.168.1.3", "255.255.255.0");
     VCU::start();
+    //HAL_Delay(200);
 
     while (1) {
         STLIB::update();

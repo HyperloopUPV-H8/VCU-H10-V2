@@ -82,7 +82,7 @@ void Comms::start() {
         new DatagramSocket(IPV4(VCU_IP), CONTROL_STATION_UDP_PORT,
                            IPV4(CONTROL_STATION_IP), CONTROL_STATION_UDP_PORT);
 
-    lcu_tcp = new Socket(IPV4(VCU_IP), LCU_PORT, IPV4(LCU_IP), REMOTE_PORT);
+    /* lcu_tcp = new Socket(IPV4(VCU_IP), LCU_PORT, IPV4(LCU_IP), REMOTE_PORT);
 
     lcu_udp = new DatagramSocket(IPV4(VCU_IP), LCU_UDP_PORT, IPV4(LCU_IP),
                                  LCU_UDP_PORT);
@@ -99,7 +99,7 @@ void Comms::start() {
     pcu_tcp = new Socket(IPV4(VCU_IP), PCU_PORT, IPV4(PCU_IP), REMOTE_PORT);
 
     pcu_udp = new DatagramSocket(IPV4(VCU_IP), PCU_UDP_PORT, IPV4(PCU_IP),
-                                 PCU_UDP_PORT);
+                                 PCU_UDP_PORT); */
 
     add_packets();
     add_orders();
@@ -296,7 +296,7 @@ void Comms::read_sensors() {
 
 void Comms::check_close_contactors_order() {
     if (close_contactors_flag) {
-        if (*VCU::operational_state == VCU_SM::OperationalStates::Idle) {
+        /* if (*VCU::operational_state == VCU_SM::OperationalStates::Idle) {
             static uint8_t timeout_id = -1;
             if (!close_contactors_sent) {
                 hvscu_tcp->send_order(*remote_close_contactors);
@@ -305,10 +305,10 @@ void Comms::check_close_contactors_order() {
                 if (hvscu_state ==
                     static_cast<uint8_t>(HVSCU_states::HVSCU_Closed)) {
                     Time::cancel_timeout(timeout_id);
-                    timeout_id = -1;
+                    timeout_id = -1; */
                     actuators->contactors_closed = true;
                     close_contactors_flag = false;
-                    close_contactors_sent = false;
+                    /* close_contactors_sent = false;
                 } else {
                     if (timeout_id == -1) {
                         timeout_id = Time::set_timeout(6000, [&]() {
@@ -316,17 +316,17 @@ void Comms::check_close_contactors_order() {
                         });
                     }
                 }
-            }
+            } */
         } else {
             WARNING("Cannot close contactors in this state");
             close_contactors_flag = false;
         }
     }
-}
+/* } */
 
 void Comms::check_open_contactors_order() {
     if (open_contactors_flag) {
-        static uint8_t timeout_id = -1;
+        /* static uint8_t timeout_id = -1;
         if (!open_contactors_sent) {
             hvscu_tcp->send_order(*remote_open_contactors);
             open_contactors_sent = true;
@@ -334,12 +334,12 @@ void Comms::check_open_contactors_order() {
             if (hvscu_state ==
                 static_cast<uint8_t>(HVSCU_states::HVSCU_Opened)) {
                 Time::cancel_timeout(timeout_id);
-                timeout_id = -1;
+                timeout_id = -1; */
                 actuators->contactors_closed = false;
                 open_contactors_flag = false;
                 brakes->brake();  // Ensure brakes are applied when contactors
                                   // are open
-                open_contactors_sent = false;
+                /* open_contactors_sent = false;
             } else {
                 if (timeout_id == -1) {
                     timeout_id = Time::set_timeout(100, [&]() {
@@ -347,7 +347,7 @@ void Comms::check_open_contactors_order() {
                     });
                 }
             }
-        }
+        } */
     }
 }
 

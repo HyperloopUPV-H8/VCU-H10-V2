@@ -5,6 +5,8 @@
 using namespace std::chrono_literals;
 
 class VCU_SM {
+    static inline bool bmsl_socket_created = false;
+
    public:
     enum GeneralStates {
         Connecting,
@@ -33,28 +35,32 @@ class VCU_SM {
 
         GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Operational, [&]() {
-                return Comms::control_station_tcp->is_connected() &&
+                return Comms::control_station_tcp->is_connected() /* &&
                        Comms::hvscu_tcp->is_connected() &&
                        Comms::pcu_tcp->is_connected() &&
                        Comms::lcu_tcp->is_connected() &&
-                       Comms::bcu_tcp->is_connected();
+                       Comms::bcu_tcp->is_connected() */
+                       && Comms::bmsl_tcp->is_connected();
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
-                return !Comms::control_station_tcp->is_connected() ||
+                return !Comms::control_station_tcp->is_connected() /* ||
                        !Comms::hvscu_tcp->is_connected() ||
                        !Comms::pcu_tcp->is_connected() ||
                        !Comms::lcu_tcp->is_connected() ||
-                       !Comms::bcu_tcp->is_connected();
+                       !Comms::bcu_tcp->is_connected() */
+                       || !Comms::bmsl_tcp->is_connected();
             });
 
-        GeneralStateMachine.add_transition(
+        // CHECK THIS!!!!!!!!!
+
+        /* GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 return ((Comms::brakes->All_reeds &&
                          Comms::brakes->Active_brakes) &&
                         (!Comms::brakes->breaks_first_time));
-            });
+            }); */
 
         /* GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault, [&]() {
@@ -155,7 +161,7 @@ class VCU_SM {
 
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() {
-                if (!Comms::hvscu_tcp->is_connected()) {
+                /* if (!Comms::hvscu_tcp->is_connected()) {
                     Comms::hvscu_tcp->reconnect();
                 }
 
@@ -169,6 +175,21 @@ class VCU_SM {
 
                 if (!Comms::bcu_tcp->is_connected()) {
                     Comms::bcu_tcp->reconnect();
+                } */
+
+                if (Comms::control_station_tcp->is_connected()) {
+                    if (!bmsl_socket_created) {
+                        Comms::bmsl_tcp =
+                            new Socket(IPV4("192.168.1.3"), 50503,
+                                       IPV4("192.168.1.254"), 50499);
+                        bmsl_socket_created = true;
+                    }
+
+                    if(bmsl_socket_created)
+                        Comms::bmsl_tcp->reconnect();
+
+                } else {
+                    return;
                 }
             },
             100ms, GeneralStates::Connecting);

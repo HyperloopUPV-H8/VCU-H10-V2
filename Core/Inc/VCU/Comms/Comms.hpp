@@ -221,7 +221,7 @@ class Comms {
     static constexpr std::string VCU_IP = "192.168.1.3";
     static constexpr std::string PCU_IP = "192.168.1.5";
     static constexpr std::string HVSCU_IP = "192.168.1.7";
-    static constexpr std::string BMSL_IP = "192.168.1.3";
+    static constexpr std::string BMSL_IP = "192.168.1.254";
     static constexpr std::string LCU_IP = "192.168.1.4";
     static constexpr std::string BCU_IP = "192.168.2.17";
     static constexpr std::string BLCU_IP = "192.168.1.3";
