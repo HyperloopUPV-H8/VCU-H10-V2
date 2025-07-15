@@ -11,6 +11,7 @@ class VCU {
     static inline uint8_t* general_state{};
     static inline uint8_t* operational_state{};
 
+
     static void init();
     static void start();
     static void update();

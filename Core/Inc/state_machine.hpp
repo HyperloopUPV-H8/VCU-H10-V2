@@ -8,6 +8,8 @@ class VCU_SM {
     static inline bool bmsl_socket_created = false;
 
    public:
+    static inline bool tetas = false;
+
     enum GeneralStates {
         Connecting,
         Operational,
@@ -35,22 +37,24 @@ class VCU_SM {
 
         GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Operational, [&]() {
-                return Comms::control_station_tcp->is_connected() /* &&
-                       Comms::hvscu_tcp->is_connected() &&
-                       Comms::pcu_tcp->is_connected() &&
-                       Comms::lcu_tcp->is_connected() &&
-                       Comms::bcu_tcp->is_connected() */
-                       && Comms::bmsl_tcp->is_connected();
+                return Comms::control_station_tcp->is_connected() &&
+                       Comms::bmsl_tcp->is_connected() &&
+                       Comms::hvscu_tcp->is_connected() /*  &&
+                        Comms::pcu_tcp->is_connected() &&
+                        Comms::lcu_tcp->is_connected() &&
+                        Comms::bcu_tcp->is_connected() */
+                    ;
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
-                return !Comms::control_station_tcp->is_connected() /* ||
+                return !Comms::control_station_tcp->is_connected() ||
                        !Comms::hvscu_tcp->is_connected() ||
+                       !Comms::bmsl_tcp->is_connected() /* ||
                        !Comms::pcu_tcp->is_connected() ||
                        !Comms::lcu_tcp->is_connected() ||
                        !Comms::bcu_tcp->is_connected() */
-                       || !Comms::bmsl_tcp->is_connected();
+                    ;
             });
 
         // CHECK THIS!!!!!!!!!
@@ -100,6 +104,12 @@ class VCU_SM {
                 Time::set_timeout(100, [&]() { Comms::brakes->brake(); });
             },
             GeneralStates::Fault);
+
+        OperationalStateMachine.add_enter_action(
+            [&]() { Comms::on_Enable_tapes(); }, OperationalStates::Ready);
+
+        OperationalStateMachine.add_exit_action(
+            [&]() { Comms::on_Disable_tapes(); }, OperationalStates::Ready);
 
         //-----------
 
@@ -159,37 +169,41 @@ class VCU_SM {
             [&]() { Comms::reading_sensors = true; }, 100ms,
             GeneralStates::Fault);
 
-        GeneralStateMachine.add_low_precision_cyclic_action(
+        /* GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() {
-                /* if (!Comms::hvscu_tcp->is_connected()) {
-                    Comms::hvscu_tcp->reconnect();
-                }
+                if (!tetas) {
+                    Time::set_timeout(3000, [&]() {
+                        if (!Comms::bmsl_tcp->is_connected()) {
+                            Comms::bmsl_tcp->reconnect();
+                        }
 
-                if (!Comms::pcu_tcp->is_connected()) {
-                    Comms::pcu_tcp->reconnect();
-                }
-
-                if (!Comms::lcu_tcp->is_connected()) {
-                    Comms::lcu_tcp->reconnect();
-                }
-
-                if (!Comms::bcu_tcp->is_connected()) {
-                    Comms::bcu_tcp->reconnect();
-                } */
-
-                if (Comms::control_station_tcp->is_connected()) {
-                    if (!bmsl_socket_created) {
-                        Comms::bmsl_tcp =
-                            new Socket(IPV4("192.168.1.3"), 50503,
-                                       IPV4("192.168.1.254"), 50499);
-                        bmsl_socket_created = true;
+                        if (!Comms::hvscu_tcp->is_connected()) {
+                            Comms::hvscu_tcp->reconnect();
+                        }
+                        tetas = true;
+                    });
+                } else {
+                    if (!Comms::bmsl_tcp->is_connected()) {
+                        Comms::bmsl_tcp->reconnect();
                     }
 
-                    if(bmsl_socket_created)
-                        Comms::bmsl_tcp->reconnect();
+                    if (!Comms::hvscu_tcp->is_connected()) {
+                        Comms::hvscu_tcp->reconnect();
+                    }
+                }
+            },
+            100ms, GeneralStates::Connecting); */
 
-                } else {
-                    return;
+        GeneralStateMachine.add_low_precision_cyclic_action(
+            [&]() {
+                if (tetas) {
+                    if (!Comms::bmsl_tcp->is_connected()) {
+                        Comms::bmsl_tcp->reconnect();
+                    }
+
+                    if (!Comms::hvscu_tcp->is_connected()) {
+                        Comms::hvscu_tcp->reconnect();
+                    }
                 }
             },
             100ms, GeneralStates::Connecting);

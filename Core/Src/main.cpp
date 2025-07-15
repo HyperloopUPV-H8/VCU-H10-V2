@@ -11,8 +11,10 @@ int main(void) {
 
     VCU::init();
     STLIB::start("00:00:00:00:01:03","192.168.1.3", "255.255.255.0");
-    VCU::start();
-    //HAL_Delay(200);
+    Time::set_timeout(2000, []() {
+        VCU::start();
+        VCU::state_machine->tetas = true;
+    });
 
     while (1) {
         STLIB::update();
