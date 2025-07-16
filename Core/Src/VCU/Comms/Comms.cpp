@@ -95,11 +95,11 @@ void Comms::start() {
 
     bcu_tcp =
         new Socket(IPV4(VCU_IP), BCU_PORT, IPV4(BCU_IP), JUANS_REMOTE_PORT);
-
+ */
     pcu_tcp = new Socket(IPV4(VCU_IP), PCU_PORT, IPV4(PCU_IP), REMOTE_PORT);
 
     pcu_udp = new DatagramSocket(IPV4(VCU_IP), PCU_UDP_PORT, IPV4(PCU_IP),
-                                 PCU_UDP_PORT); */
+                                 PCU_UDP_PORT);
 
     add_packets();
     add_orders();

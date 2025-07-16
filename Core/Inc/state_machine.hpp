@@ -39,19 +39,18 @@ class VCU_SM {
             GeneralStates::Connecting, GeneralStates::Operational, [&]() {
                 return Comms::control_station_tcp->is_connected() &&
                        Comms::bmsl_tcp->is_connected() &&
-                       Comms::hvscu_tcp->is_connected() /*  &&
-                        Comms::pcu_tcp->is_connected() &&
-                        Comms::lcu_tcp->is_connected() &&
-                        Comms::bcu_tcp->is_connected() */
-                    ;
+                       Comms::hvscu_tcp->is_connected() &&
+                       Comms::pcu_tcp->is_connected() /* &&
+                       Comms::lcu_tcp->is_connected() &&
+                       Comms::bcu_tcp->is_connected() */;
             });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 return !Comms::control_station_tcp->is_connected() ||
                        !Comms::hvscu_tcp->is_connected() ||
-                       !Comms::bmsl_tcp->is_connected() /* ||
-                       !Comms::pcu_tcp->is_connected() ||
+                       !Comms::bmsl_tcp->is_connected() ||
+                       !Comms::pcu_tcp->is_connected() /* ||
                        !Comms::lcu_tcp->is_connected() ||
                        !Comms::bcu_tcp->is_connected() */
                     ;
@@ -203,6 +202,10 @@ class VCU_SM {
 
                     if (!Comms::hvscu_tcp->is_connected()) {
                         Comms::hvscu_tcp->reconnect();
+                    }
+
+                    if (!Comms::pcu_tcp->is_connected()) {
+                        Comms::pcu_tcp->reconnect();
                     }
                 }
             },
