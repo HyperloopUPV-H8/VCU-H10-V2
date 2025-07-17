@@ -78,7 +78,7 @@ class Comms {
     };
 
     enum class External_ids : uint16_t {
-        Levitation = 102,
+        Levitation = 9989,
         Propulsion = 103,
         Charging_lv = 104,
         Charging_hv = 105,
@@ -86,7 +86,7 @@ class Comms {
         Booster = 1790,
         Close_contactors = 900,
         End_of_run = 110,
-        Stop_levitation = 111,
+        Stop_levitation = 9993,
         Stop_propulsion = 112,
         Stop_charging_lv = 113,
         Stop_charging_hv = 114,

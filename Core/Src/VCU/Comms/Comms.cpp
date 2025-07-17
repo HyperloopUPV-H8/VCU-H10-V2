@@ -88,10 +88,10 @@ void Comms::start() {
     hvscu_udp = new DatagramSocket(IPV4(VCU_IP), HVSCU_UDP_PORT, IPV4(HVSCU_IP),
                                    HVSCU_UDP_PORT);
 
-    /* lcu_tcp = new Socket(IPV4(VCU_IP), LCU_PORT, IPV4(LCU_IP), REMOTE_PORT);
+    lcu_tcp = new Socket(IPV4(VCU_IP), LCU_PORT, IPV4(LCU_IP), REMOTE_PORT);
 
     lcu_udp = new DatagramSocket(IPV4(VCU_IP), LCU_UDP_PORT, IPV4(LCU_IP),
-                                 LCU_UDP_PORT); */
+                                 LCU_UDP_PORT);
 
     /* bcu_tcp =
         new Socket(IPV4(VCU_IP), BCU_PORT, IPV4(BCU_IP), JUANS_REMOTE_PORT); */
@@ -370,7 +370,9 @@ void Comms::check_unbrake_order() {
     if (unbrake_flag) {
         if (*VCU::operational_state == VCU_SM::OperationalStates::Energized ||
             *VCU::operational_state == VCU_SM::OperationalStates::Recovery) {
-            // actuators->set_regulator_1(6);
+            Time::set_timeout(2000, [&]() {
+                actuators->set_regulator_1(6);
+            });
             brakes->unbrake();
             unbrake_flag = false;
         } else {
