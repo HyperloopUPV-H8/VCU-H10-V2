@@ -40,8 +40,8 @@ class VCU_SM {
                 return Comms::control_station_tcp->is_connected() &&
                        Comms::bmsl_tcp->is_connected() &&
                        Comms::hvscu_tcp->is_connected() &&
-                       Comms::pcu_tcp->is_connected() /* &&
-                       Comms::lcu_tcp->is_connected() &&
+                       Comms::pcu_tcp->is_connected() &&
+                       Comms::lcu_tcp->is_connected() /* &&
                        Comms::bcu_tcp->is_connected() */;
             });
 
@@ -50,8 +50,8 @@ class VCU_SM {
                 return !Comms::control_station_tcp->is_connected() ||
                        !Comms::hvscu_tcp->is_connected() ||
                        !Comms::bmsl_tcp->is_connected() ||
-                       !Comms::pcu_tcp->is_connected() /* ||
-                       !Comms::lcu_tcp->is_connected() ||
+                       !Comms::pcu_tcp->is_connected() ||
+                       !Comms::lcu_tcp->is_connected() /* ||
                        !Comms::bcu_tcp->is_connected() */
                     ;
             });
@@ -206,6 +206,10 @@ class VCU_SM {
 
                     if (!Comms::pcu_tcp->is_connected()) {
                         Comms::pcu_tcp->reconnect();
+                    }
+
+                    if (!Comms::lcu_tcp->is_connected()) {
+                        Comms::lcu_tcp->reconnect();
                     }
                 }
             },
