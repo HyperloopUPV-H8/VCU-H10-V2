@@ -9,7 +9,6 @@ Brakes::Brakes(){
     reed3_input = DigitalSensor(REED3_PIN, &reed3);
     reed4_input = DigitalSensor(REED4_PIN, &reed4);
 
-    // Tape_input = DigitalSensor(TAPE_INPUT_PIN, &Tape_state);
     tape_enable_output = DigitalOutput(TAPE_E_PIN);
 
     tape_emergency_input = DigitalSensor(TAPE_PIN, &tape_emergency);
@@ -25,7 +24,6 @@ void Brakes::brake(){
         breaks_first_time = false;
 
     }
-    // TO DO: SET UP REGULATOR PRESSURE TO 6 bars
 
     Actuator_out.turn_off();
     Active_brakes = true;

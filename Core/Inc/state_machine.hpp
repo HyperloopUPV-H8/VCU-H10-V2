@@ -16,7 +16,7 @@ class VCU_SM {
         Fault,
     };
 
-    enum OperationalStates { Idle, EndOfRun, Energized, Ready, Demonstration };
+    enum OperationalStates { Idle, EndOfRun, Energized, Ready, Demonstration, Recovery };
 
     StateMachine GeneralStateMachine;
     StateMachine OperationalStateMachine;
@@ -31,6 +31,7 @@ class VCU_SM {
         OperationalStateMachine.add_state(OperationalStates::Energized);
         OperationalStateMachine.add_state(OperationalStates::Ready);
         OperationalStateMachine.add_state(OperationalStates::Demonstration);
+        OperationalStateMachine.add_state(OperationalStates::Recovery);
 
         GeneralStateMachine.add_state_machine(OperationalStateMachine,
                                               GeneralStates::Operational);
@@ -41,7 +42,7 @@ class VCU_SM {
                        Comms::bmsl_tcp->is_connected() &&
                        Comms::hvscu_tcp->is_connected() &&
                        Comms::pcu_tcp->is_connected() /* &&
-                       Comms::lcu_tcp->is_connected() &&
+                       Comms::lcu_tcp->is_connected() */ /* &&
                        Comms::bcu_tcp->is_connected() */;
             });
 
@@ -51,26 +52,26 @@ class VCU_SM {
                        !Comms::hvscu_tcp->is_connected() ||
                        !Comms::bmsl_tcp->is_connected() ||
                        !Comms::pcu_tcp->is_connected() /* ||
-                       !Comms::lcu_tcp->is_connected() ||
+                       !Comms::lcu_tcp->is_connected() */ /* ||
                        !Comms::bcu_tcp->is_connected() */
                     ;
             });
 
         // CHECK THIS!!!!!!!!!
 
-        /* GeneralStateMachine.add_transition(
+        GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault, [&]() {
                 return ((Comms::brakes->All_reeds &&
-                         Comms::brakes->Active_brakes) &&
-                        (!Comms::brakes->breaks_first_time));
-            }); */
+                         Comms::brakes->Active_brakes &&
+                        !Comms::brakes->breaks_first_time));
+            });
 
-        /* GeneralStateMachine.add_transition(
+        GeneralStateMachine.add_transition(
             GeneralStates::Connecting, GeneralStates::Fault, [&]() {
                 return ((Comms::brakes->All_reeds &&
-                         Comms::brakes->Active_brakes) &&
-                        (!Comms::brakes->breaks_first_time));
-            }); */
+                         Comms::brakes->Active_brakes &&
+                        !Comms::brakes->breaks_first_time));
+            });
 
         GeneralStateMachine.add_transition(
             GeneralStates::Operational, GeneralStates::Fault,
@@ -110,11 +111,25 @@ class VCU_SM {
         OperationalStateMachine.add_exit_action(
             [&]() { Comms::on_Disable_tapes(); }, OperationalStates::Ready);
 
+        OperationalStateMachine.add_enter_action(
+            [&]() { Comms::on_Enable_tapes(); }, OperationalStates::Demonstration);
+
+        OperationalStateMachine.add_exit_action(
+            [&]() { Comms::on_Disable_tapes(); }, OperationalStates::Demonstration);
+
+        OperationalStateMachine.add_enter_action([](){
+            Comms::on_Disable_tapes();
+        }, OperationalStates::Recovery);
+
         //-----------
 
         OperationalStateMachine.add_transition(
             OperationalStates::Idle, OperationalStates::Energized,
             [&]() { return Comms::actuators->contactors_closed; });
+
+        OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Recovery, [](){
+            return Comms::brakes->tape_emergency == PinState::ON;
+        });
 
         OperationalStateMachine.add_transition(
             OperationalStates::Energized, OperationalStates::Idle,
@@ -168,31 +183,6 @@ class VCU_SM {
             [&]() { Comms::reading_sensors = true; }, 100ms,
             GeneralStates::Fault);
 
-        /* GeneralStateMachine.add_low_precision_cyclic_action(
-            [&]() {
-                if (!tetas) {
-                    Time::set_timeout(3000, [&]() {
-                        if (!Comms::bmsl_tcp->is_connected()) {
-                            Comms::bmsl_tcp->reconnect();
-                        }
-
-                        if (!Comms::hvscu_tcp->is_connected()) {
-                            Comms::hvscu_tcp->reconnect();
-                        }
-                        tetas = true;
-                    });
-                } else {
-                    if (!Comms::bmsl_tcp->is_connected()) {
-                        Comms::bmsl_tcp->reconnect();
-                    }
-
-                    if (!Comms::hvscu_tcp->is_connected()) {
-                        Comms::hvscu_tcp->reconnect();
-                    }
-                }
-            },
-            100ms, GeneralStates::Connecting); */
-
         GeneralStateMachine.add_low_precision_cyclic_action(
             [&]() {
                 if (tetas) {
@@ -207,6 +197,10 @@ class VCU_SM {
                     if (!Comms::pcu_tcp->is_connected()) {
                         Comms::pcu_tcp->reconnect();
                     }
+
+                    /* if (!Comms::lcu_tcp->is_connected()) {
+                        Comms::lcu_tcp->reconnect();
+                    } */
                 }
             },
             100ms, GeneralStates::Connecting);
