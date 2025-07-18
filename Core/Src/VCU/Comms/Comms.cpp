@@ -88,10 +88,10 @@ void Comms::start() {
     hvscu_udp = new DatagramSocket(IPV4(VCU_IP), HVSCU_UDP_PORT, IPV4(HVSCU_IP),
                                    HVSCU_UDP_PORT);
 
-    lcu_tcp = new Socket(IPV4(VCU_IP), LCU_PORT, IPV4(LCU_IP), REMOTE_PORT);
+    /* lcu_tcp = new Socket(IPV4(VCU_IP), LCU_PORT, IPV4(LCU_IP), REMOTE_PORT);
 
     lcu_udp = new DatagramSocket(IPV4(VCU_IP), LCU_UDP_PORT, IPV4(LCU_IP),
-                                 LCU_UDP_PORT);
+                                 LCU_UDP_PORT); */
 
     /* bcu_tcp =
         new Socket(IPV4(VCU_IP), BCU_PORT, IPV4(BCU_IP), JUANS_REMOTE_PORT); */
@@ -138,6 +138,9 @@ void Comms::add_packets() {
 
     pcu_state_packet = new HeapPacket(
         static_cast<uint16_t>(Packets_id::pcu_state), &pcu_state);
+
+    vcu_state_packet = new HeapPacket(
+        static_cast<uint16_t>(Packets_id::vcu_state), &recovery_status);
 }
 
 void Comms::add_orders() {
@@ -287,6 +290,7 @@ void Comms::send_packets() {
         control_station_udp->send_packet(*pressure);
         control_station_udp->send_packet(*tapes);
         control_station_udp->send_packet(*sdc);
+        pcu_udp->send_packet(*vcu_state_packet);
     });
 }
 

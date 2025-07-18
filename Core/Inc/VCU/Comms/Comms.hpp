@@ -27,6 +27,8 @@ class Comms {
     static inline uint8_t lcu_v_state{};
     static inline uint8_t lcu_h_state{};
 
+    static inline uint8_t recovery_status{0};
+
     // -----------------Enums-----------------
     enum class Orders_id : uint16_t {
         Recovery = 32,
@@ -76,7 +78,8 @@ class Comms {
 
         hvscu_state = 941,
         lcu_state = 63,
-        pcu_state = 64
+        pcu_state = 64,
+        vcu_state = 65,
     };
 
     enum class External_ids : uint16_t {
@@ -281,7 +284,8 @@ class Comms {
     static inline HeapPacket* pressure{};
     static inline HeapPacket* tapes{};
     static inline HeapPacket* sdc{};
-
+    static inline HeapPacket* vcu_state_packet{};
+    
     // Remote packets
     static inline HeapPacket* hvscu_state_packet{};
     static inline HeapPacket* lcu_state_packet{};
