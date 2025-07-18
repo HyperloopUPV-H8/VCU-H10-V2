@@ -29,6 +29,8 @@ class Comms {
 
     // -----------------Enums-----------------
     enum class Orders_id : uint16_t {
+        Recovery = 32,
+
         Potencia_refri = 33,
         Set_Regulator = 34,
         Enable_tapes = 35,
@@ -136,6 +138,7 @@ class Comms {
     static inline bool brake_flag{};
     static inline bool close_contactors_flag{};
     static inline bool end_of_run_flag{};
+    static inline bool recovery_flag{};
 
     static inline bool stop_levitation_flag{};
     static inline bool stop_propulsion_flag{};
@@ -342,7 +345,7 @@ class Comms {
     static inline HeapOrder* motor_brake{};
     static inline HeapOrder* remote_motor_brake{};
 
-    
+    static inline HeapOrder* recovery{};
 
     // -----------------Functions-----------------
     static void init();
@@ -372,6 +375,8 @@ class Comms {
     static void booster_callback();
 
     static void brake_callback();
+    static void recovery_callback();
+
     static void close_contactors_callback();
     static void end_of_run_callback();
 

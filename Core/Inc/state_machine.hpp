@@ -126,7 +126,7 @@ class VCU_SM {
             [&]() { return Comms::actuators->contactors_closed; });
 
         OperationalStateMachine.add_transition(OperationalStates::Idle, OperationalStates::Recovery, [](){
-            return Comms::brakes->tape_emergency == PinState::ON;
+            return Comms::brakes->tape_emergency == PinState::ON || Comms::recovery_flag;
         });
 
         OperationalStateMachine.add_transition(

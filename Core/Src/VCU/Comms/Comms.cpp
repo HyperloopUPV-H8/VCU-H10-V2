@@ -39,7 +39,7 @@ void Comms::on_Disable_tapes() {
 }
 
 void Comms::brake_callback() { brake_flag = true; }
-
+void Comms::recovery_callback() { recovery_flag = true; }
 void Comms::unbrake_callback() { unbrake_flag = true; }
 
 void Comms::close_contactors_callback() { close_contactors_flag = true; }
@@ -273,6 +273,9 @@ void Comms::add_orders() {
     emergency_stop =
         new HeapOrder(static_cast<uint16_t>(Orders_id::Emergency_stop),
                       &emergency_stop_callback);
+
+    recovery = new HeapOrder(static_cast<uint16_t>(Orders_id::Recovery),
+                            &recovery_callback);
 }
 
 void Comms::send_packets() {
@@ -370,10 +373,8 @@ void Comms::check_unbrake_order() {
     if (unbrake_flag) {
         if (*VCU::operational_state == VCU_SM::OperationalStates::Energized ||
             *VCU::operational_state == VCU_SM::OperationalStates::Recovery) {
-            Time::set_timeout(2000, [&]() {
-                actuators->set_regulator_1(6);
-            });
-            brakes->unbrake();
+            actuators->set_regulator_1(6);
+            Time::set_timeout(2000, [&]() { brakes->unbrake(); });
             unbrake_flag = false;
         } else {
             WARNING("Cannot unbrake in this state");
