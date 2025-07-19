@@ -80,7 +80,7 @@ void Comms::start() {
         new DatagramSocket(IPV4(VCU_IP), CONTROL_STATION_UDP_PORT,
                            IPV4(CONTROL_STATION_IP), CONTROL_STATION_UDP_PORT);
 
-    bmsl_tcp = new Socket(IPV4(VCU_IP), BMSL_PORT, IPV4(BMSL_IP), REMOTE_PORT, 1000, 500, 10);
+    /* bmsl_tcp = new Socket(IPV4(VCU_IP), BMSL_PORT, IPV4(BMSL_IP), REMOTE_PORT, 1000, 500, 10); */
 
     hvscu_tcp =
         new Socket(IPV4(VCU_IP), HVSCU_PORT, IPV4(HVSCU_IP), REMOTE_PORT, 1000, 500, 10);
