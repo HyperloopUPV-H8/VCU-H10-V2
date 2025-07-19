@@ -128,7 +128,7 @@ class VCU_SM {
             OperationalStates::Demonstration);
 
         OperationalStateMachine.add_enter_action(
-            []() { Comms::on_Disable_tapes(); }, OperationalStates::Recovery);
+            []() { Comms::on_Enable_tapes(); }, OperationalStates::Recovery);
 
         //-----------
 
