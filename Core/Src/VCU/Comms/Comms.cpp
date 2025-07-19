@@ -74,7 +74,7 @@ void Comms::init() {
 }
 
 void Comms::start() {
-    control_station_tcp = new ServerSocket(IPV4(VCU_IP), REMOTE_PORT);
+    control_station_tcp = new ServerSocket(IPV4(VCU_IP), REMOTE_PORT, 1000, 500, 10);
 
     control_station_udp =
         new DatagramSocket(IPV4(VCU_IP), CONTROL_STATION_UDP_PORT,
