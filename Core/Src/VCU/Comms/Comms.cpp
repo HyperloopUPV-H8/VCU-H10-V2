@@ -80,10 +80,10 @@ void Comms::start() {
         new DatagramSocket(IPV4(VCU_IP), CONTROL_STATION_UDP_PORT,
                            IPV4(CONTROL_STATION_IP), CONTROL_STATION_UDP_PORT);
 
-    bmsl_tcp = new Socket(IPV4(VCU_IP), BMSL_PORT, IPV4(BMSL_IP), REMOTE_PORT);
+    bmsl_tcp = new Socket(IPV4(VCU_IP), BMSL_PORT, IPV4(BMSL_IP), REMOTE_PORT, 1000, 500, 10);
 
     hvscu_tcp =
-        new Socket(IPV4(VCU_IP), HVSCU_PORT, IPV4(HVSCU_IP), REMOTE_PORT);
+        new Socket(IPV4(VCU_IP), HVSCU_PORT, IPV4(HVSCU_IP), REMOTE_PORT, 1000, 500, 10);
 
     hvscu_udp = new DatagramSocket(IPV4(VCU_IP), HVSCU_UDP_PORT, IPV4(HVSCU_IP),
                                    HVSCU_UDP_PORT);
@@ -96,7 +96,7 @@ void Comms::start() {
     /* bcu_tcp =
         new Socket(IPV4(VCU_IP), BCU_PORT, IPV4(BCU_IP), JUANS_REMOTE_PORT); */
 
-    pcu_tcp = new Socket(IPV4(VCU_IP), PCU_PORT, IPV4(PCU_IP), REMOTE_PORT);
+    pcu_tcp = new Socket(IPV4(VCU_IP), PCU_PORT, IPV4(PCU_IP), REMOTE_PORT, 1000, 500, 10);
 
     pcu_udp = new DatagramSocket(IPV4(VCU_IP), PCU_UDP_PORT, IPV4(PCU_IP),
                                  PCU_UDP_PORT);
