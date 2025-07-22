@@ -11,7 +11,7 @@ int main(void) {
 
     VCU::init();
     STLIB::start("00:00:00:00:01:03","192.168.1.3", "255.255.255.0");
-    Time::set_timeout(2000, []() {
+    Time::set_timeout(4000, []() {
         VCU::start();
         VCU::state_machine->tetas = true;
     });

@@ -114,17 +114,17 @@ class VCU_SM {
             GeneralStates::Fault);
 
         OperationalStateMachine.add_enter_action(
-            [&]() { Comms::on_Enable_tapes(); }, OperationalStates::Ready);
-
-        OperationalStateMachine.add_exit_action(
             [&]() { Comms::on_Disable_tapes(); }, OperationalStates::Ready);
 
+        OperationalStateMachine.add_exit_action(
+            [&]() { Comms::on_Enable_tapes(); }, OperationalStates::Ready);
+
         OperationalStateMachine.add_enter_action(
-            [&]() { Comms::on_Enable_tapes(); },
+            [&]() { Comms::on_Disable_tapes(); },
             OperationalStates::Demonstration);
 
         OperationalStateMachine.add_exit_action(
-            [&]() { Comms::on_Disable_tapes(); },
+            [&]() { Comms::on_Enable_tapes(); },
             OperationalStates::Demonstration);
 
         OperationalStateMachine.add_enter_action(

@@ -29,12 +29,12 @@ void Comms::on_Set_regulator() {
 }
 
 void Comms::on_Enable_tapes() {
-    brakes->tape_enable_status = PinState::ON;
+    brakes->tape_enable_status = PinState::OFF;
     brakes->tape_enable_output.turn_on();
 }
 
 void Comms::on_Disable_tapes() {
-    brakes->tape_enable_status = PinState::OFF;
+    brakes->tape_enable_status = PinState::ON;
     brakes->tape_enable_output.turn_off();
 }
 
@@ -282,7 +282,7 @@ void Comms::add_orders() {
 }
 
 void Comms::send_packets() {
-    Time::set_timeout(3000, [&]() {
+    Time::set_timeout(5000, [&]() {
         control_station_udp->send_packet(*states);
         control_station_udp->send_packet(*reeds);
         control_station_udp->send_packet(*flow);
