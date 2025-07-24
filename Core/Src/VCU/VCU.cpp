@@ -10,7 +10,7 @@ void VCU::init() {
     ProtectionManager::link_state_machine(state_machine->GeneralStateMachine,
                                           VCU_SM::GeneralStates::Fault);
     ProtectionManager::set_id(Boards::ID::VCU);
-
+  
     Comms::init();
 }
 
@@ -33,7 +33,7 @@ void VCU::read_sensors() {
         Comms::read_sensors();
         Comms::reading_sensors = false;
     }
-}
+
 
 void VCU::update() {
     if (state_machine->tetas) {
